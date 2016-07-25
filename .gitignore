@@ -1,5 +1,5 @@
 node_modules/**
-images/**
+output/**
 .temp/**
 !.gitkeep
 .DS_Store
