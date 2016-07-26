@@ -1,7 +1,6 @@
 const fs = require('fs');
 const gm = require('gm');
 const del = require('del');
-const webdriver = require('selenium-webdriver');
 
 const Util = require('./util');
 
