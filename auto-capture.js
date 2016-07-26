@@ -1,6 +1,4 @@
 const argv = require('argv');
-const path = require('path');
-const mkdirp = require('mkdirp');
 const webdriver = require('selenium-webdriver');
 
 const CaptureJson = require('./input/capture-list.json');
