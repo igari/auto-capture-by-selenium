@@ -2,7 +2,8 @@
  "captureTarget": [
   {
    "pc": [
-    "https://www.google.co.jp/"
+    "https://www.google.co.jp/",
+    "http://www.yahoo.co.jp/"
    ]
   }
  ]
