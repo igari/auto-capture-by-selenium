@@ -1,3 +1,4 @@
+const argv = require('argv');
 const path = require('path');
 const mkdirp = require('mkdirp');
 const webdriver = require('selenium-webdriver');
@@ -5,10 +6,6 @@ const webdriver = require('selenium-webdriver');
 const CaptureJson = require('./input/capture-list.json');
 const Capture = require('./scripts/capture');
 
-const BASIC_AUTH = {
-	ID: '',
-	PASS: ''
-};
 const BROWSER = {
 	CHROME: 'chrome',
 	FF: 'firefox',
@@ -26,6 +23,7 @@ var WebDriver = {
 	init: function() {
 		var _this = this;
 		this.start();
+		this.setOptions();
 		this.setParameters();
 		this.initialConfig()
 			.then(function() {
@@ -35,9 +33,37 @@ var WebDriver = {
 				_this.end();
 			});
 	},
+	setOptions: function() {
+		argv.option({
+			name: 'browser',
+			short: 'b',
+			type: 'string',
+			description: '起動するブラウザを選択します。選択肢は[chrome, firefox, ie]のいずれかです。',
+			example: `'node auto-capture.js --browser=chrome'`
+		});
+		argv.option({
+			name: 'basicId',
+			short: 'bid',
+			type: 'string',
+			description: 'Basic認証が必要な場合にID（ユーザー名）を指定します。',
+			example: `'node auto-capture.js --basicid=id --basicpadd=pass'`
+		});
+		argv.option({
+			name: 'basicPass',
+			short: 'bpass',
+			type: 'string',
+			description: 'Basic認証が必要な場合にパスワードを指定します。',
+			example: `'node auto-capture.js --basicid=id --basicpadd=pass'`
+		});
+	},
 	setParameters: function() {
+		this.argv = argv.run();
+		this.basicAuth = {
+			id: this.argv.options.basicId,
+			pass: this.argv.options.basicPass
+		};
 		this.captureList = this.getCaptureList(DEVICE.PC);
-		this.currentBrowser = process.argv[2] || BROWSER.FF;
+		this.currentBrowser = this.argv.options.browser || BROWSER.FF;
 
 		var driver = new webdriver.Builder().usingServer('http://localhost:4444/wd/hub');
 		switch (this.currentBrowser) {
@@ -69,7 +95,7 @@ var WebDriver = {
 
 		var _capturePages = function(index) {
 			var isLast = index === _this.captureList.length - 1;
-			_this.executeCapture(_this.captureList[index], BASIC_AUTH.ID, BASIC_AUTH.PASS)
+			_this.executeCapture(_this.captureList[index])
 				.then(function() {
 					if (isLast) {
 						_resolve();
@@ -85,14 +111,14 @@ var WebDriver = {
 			_capturePages(0);
 		});
 	},
-	executeCapture: function(url, basicId, basicPass) {
+	executeCapture: function(url) {
 		var _this = this;
 		var capture = new Capture(this.driver);
 		var captureUrl = this.getDestPath(this.getImageFileName(url));
 
 		return new Promise(function(resolve, reject) {
-			if (basicId && basicPass) {
-				_this.driver.get(_this.getUrlForBasicAuth(url, basicId, basicPass));
+			if (_this.basicAuth.id && _this.basicAuth.pass) {
+				_this.driver.get(_this.getUrlForBasicAuth(url, _this.basicAuth.id, _this.basicAuth.pass));
 			} else {
 				_this.driver.get(url);
 			}
