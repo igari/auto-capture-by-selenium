@@ -1,6 +1,7 @@
 const fs = require('fs');
 const gm = require('gm');
 const del = require('del');
+const webdriver = require('selenium-webdriver');
 
 const Util = require('./util');
 
@@ -120,19 +121,29 @@ Capture.prototype = {
 
 			_this.driver.executeScript(
 				'window.scrollTo(' + scrollWidth + ',' + scrollHeight + ')'
-			).then(function() {
+			)
+			.then(function() {
+				//スクロールが完了していない場合があるためwaitさせる
+				return new Promise(function( resolve, reject ) {
+					setTimeout(function() { resolve(); }, 100);
+				});
+			})
+			.then(function() {
 				return _this.saveScreenShot(fileName);
-			}).then(function() {
+			})
+			.then(function() {
 				//横スクロールでmaxスクロール時に余り部分のみを切抜き
 				if (extraWidth > 0) {
 					return _this.cropImage(fileName, extraWidth, windowHeight, windowWidth - extraWidth, 0);
 				}
-			}).then(function() {
+			})
+			.then(function() {
 				//縦スクロールでmaxスクロール時に余り部分のみを切抜き
 				if (extraHeight > 0) {
 					return _this.cropImage(fileName, windowWidth, extraHeight, 0, windowHeight - extraHeight);
 				}
-			}).then(function() {
+			})
+			.then(function() {
 				resolve();
 			});
 		});
