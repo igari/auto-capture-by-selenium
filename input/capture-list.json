@@ -4,6 +4,10 @@
    "pc": [
     "https://www.google.co.jp/",
     "http://www.yahoo.co.jp/"
+   ],
+   "sp": [
+   	"https://www.google.co.jp/",
+   	"http://m.yahoo.co.jp/"
    ]
   }
  ]
