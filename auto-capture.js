@@ -265,22 +265,20 @@ var WebDriver = {
 
 					this.driver.wait(until.elementLocated(By.id('ignoreWarning')));
 					this.driver.findElement(By.id('ignoreWarning')).click();
-					this.driver.sleep(3000)
+					this.driver.sleep(3000);
 				}
 			}
+			// this.driver.executeScript("alert(location.href)");
+			// this.driver.executeScript("window.onbeforeunload = undefined;");
 
 			if(/chrome/.test(this.currentBrowserName)) {
 				capture.saveFullScreenShot(captureUrl).then(function() {
-					this.driver.wait(this.driver.switchTo().alert());
-					this.driver.switchTo().alert().accept();
 					resolve();
 				}.bind(this));
 			} else {
 				capture.saveScreenShot(captureUrl).then(function() {
-					this.driver.wait(this.driver.switchTo().alert());
-					this.driver.switchTo().alert().accept();
 					resolve();
-				}.bind(this));
+s				}.bind(this));
 			}
 
 		}.bind(this));
