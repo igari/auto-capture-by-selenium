@@ -50,7 +50,7 @@ var WebDriver = {
 			example: `'node auto-capture.js --browser=chrome'`
 		});
 		argv.option({
-			name: 'sourceLabsId',
+			name: 'sauceLabsId',
 			short: '',
 			type: 'string',
 			description: 'SauceLabsを利用する場合にID（ユーザー名）を指定します。',
@@ -88,7 +88,7 @@ var WebDriver = {
 		};
 
 		this.sauceLabs = {
-			username: this.argv.options.sourceLabsId,
+			username: this.argv.options.sauceLabsId,
 			accessKey: this.argv.options.sauceLabsPass
 		};
 
@@ -142,17 +142,17 @@ var WebDriver = {
 				'version': 'latest',
 				'platform': 'macOS 10.12'
 			},
-			ie11Win: {
+			ie11: {
 				'browserName': 'internet explorer',
-				'version': '11.103',
+				'version': 'latest',
 				'platform': 'Windows 10'
 			},
-			edgeWin: {
+			edge: {
 				'browserName': 'MicrosoftEdge',
 				'version': '14.14393',
 				'platform': 'Windows 10'
 			},
-			safariMac: {
+			safari: {
 				'browserName': 'safari',
 				"version": "latest",
 				"platform": "macOS 10.12"
@@ -191,6 +191,9 @@ var WebDriver = {
 	buildBrowser: function () {
 
 		this.currentBrowser = this.argv.options.browser || 'firefoxWin';
+		if(!this.caps[this.currentBrowser]) {
+			throw new Error('Your specified browser could not found.');
+		}
 		this.currentCaps = this.caps[this.currentBrowser] || this.caps['firefoxWin'];
 		this.currentBrowserName = this.currentCaps.browserName;
 		if(this.sauceLabs.username && this.sauceLabs.accessKey) {
@@ -254,28 +257,31 @@ var WebDriver = {
 			}
 
 			this.driver.get(url);
+			this.driver.sleep(3000);
+
 
 			if(this.basicAuth.id && this.basicAuth.pass) {
 				if(/safari/.test(this.currentBrowserName)) {
 
-					this.driver.wait(until.elementLocated(By.id('ignoreWarning')))
-						.then(function() {
-							return this.driver.findElement(By.id('ignoreWarning')).click();
-						}.bind(this))
-						.then(function() {
-							return this.driver.sleep(3000);
-						}.bind(this));
+					this.driver.wait(until.elementLocated(By.id('ignoreWarning')));
+					this.driver.findElement(By.id('ignoreWarning')).click();
+					this.driver.sleep(3000)
 				}
 			}
 
+
 			if(/chrome/.test(this.currentBrowserName)) {
 				capture.saveFullScreenShot(captureUrl).then(function() {
+					this.driver.wait(this.driver.switchTo().alert());
+					this.driver.switchTo().alert().accept();
 					resolve();
-				});
+				}.bind(this));
 			} else {
 				capture.saveScreenShot(captureUrl).then(function() {
+					this.driver.wait(this.driver.switchTo().alert());
+					this.driver.switchTo().alert().accept();
 					resolve();
-				});
+				}.bind(this));
 			}
 
 		}.bind(this));
