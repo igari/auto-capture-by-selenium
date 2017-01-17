@@ -269,7 +269,6 @@ var WebDriver = {
 				}
 			}
 
-
 			if(/chrome/.test(this.currentBrowserName)) {
 				capture.saveFullScreenShot(captureUrl).then(function() {
 					this.driver.wait(this.driver.switchTo().alert());
