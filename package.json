@@ -9,10 +9,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "selenium-webdriver": "~2.53.3",
-    "gm": "~1.22.0",
-    "del": "~2.2.1",
-    "mkdirp": "~0.5.1",
-    "argv": "0.0.2"
+    "argv": "^0.0.2",
+    "del": "^2.2.1",
+    "gm": "^1.23.0",
+    "mkdirp": "^0.5.1",
+    "selenium-webdriver": "^3.0.1"
   }
 }

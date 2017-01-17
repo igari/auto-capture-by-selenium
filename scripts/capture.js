@@ -1,3 +1,5 @@
+"use strict";
+
 const fs = require('fs');
 const gm = require('gm');
 const del = require('del');

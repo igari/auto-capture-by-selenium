@@ -1,5 +1,7 @@
-node_modules/**
-output/**
-.temp/**
+node_modules
+output
+.temp
 !.gitkeep
 .DS_Store
+*.iml
+.idea
