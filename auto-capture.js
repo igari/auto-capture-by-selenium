@@ -155,7 +155,9 @@ var WebDriver = {
 			safari: {
 				'browserName': 'safari',
 				"version": "latest",
-				"platform": "macOS 10.12"
+				"platform": "macOS 10.12",
+				"safariIgnoreFraudWarning": true,
+				"safariAllowPopups": false
 			},
 			iphoneSimulator: {
 				"appiumVersion": "1.6.3",
@@ -214,12 +216,10 @@ var WebDriver = {
 	},
 
 	initialConfig: function() {
-		return new Promise(function(resolve, reject) {
-			this.driver.manage().timeouts().implicitlyWait(5000)
-				.then(function() {
-					resolve();
-				});
-		}.bind(this));
+		return Promise.all([
+			this.driver.manage().timeouts().setScriptTimeout(1*60*60*1000),
+			this.driver.manage().timeouts().implicitlyWait(1000)
+		]);
 	},
 
 	capturePages: function() {
@@ -256,31 +256,83 @@ var WebDriver = {
 				url = this.getUrlForBasicAuth(url, this.basicAuth.id, this.basicAuth.pass)
 			}
 
-			this.driver.get(url);
-			this.driver.sleep(3000);
-
-
-			if(this.basicAuth.id && this.basicAuth.pass) {
-				if(/safari/.test(this.currentBrowserName)) {
-
-					this.driver.wait(until.elementLocated(By.id('ignoreWarning')));
-					this.driver.findElement(By.id('ignoreWarning')).click();
-					this.driver.sleep(3000);
-				}
-			}
-			// this.driver.executeScript("alert(location.href)");
-			// this.driver.executeScript("window.onbeforeunload = undefined;");
-
-			if(/chrome/.test(this.currentBrowserName)) {
-				capture.saveFullScreenShot(captureUrl).then(function() {
-					resolve();
+			return this.driver.get(url)
+				.then(function () {
+					if(this.basicAuth.id && this.basicAuth.pass && /safari/.test(this.currentBrowserName)) {
+						return this.driver.wait(until.elementLocated(By.id('ignoreWarning')))
+							.then(function (button) {
+								return button.click();
+							}.bind(this))
+							.then(function () {
+								return this.driver.sleep(1000);
+							}.bind(this))
+							.then(function () {
+								return capture.saveScreenShot(captureUrl)
+									.then(function () {
+										return this.driver.executeAsyncScript("document.cookie = 'hoge=fuga;'; try{$(window).off('beforeunload');}catch(e){} arguments[arguments.length - 1]();");
+									}.bind(this))
+									.then(function() {
+										resolve();
+									}.bind(this));
+							}.bind(this));
+					} else {
+						if(/chrome/.test(this.currentBrowserName)) {
+							return capture.saveFullScreenShot(captureUrl)
+								.then(function () {
+									return this.driver.executeAsyncScript("try{$(window).off('beforeunload');}catch(e){} arguments[arguments.length - 1]();");
+								}.bind(this))
+								.then(function() {
+									resolve();
+								}.bind(this));
+						} else {
+							return capture.saveScreenShot(captureUrl)
+								.then(function () {
+									return this.driver.executeAsyncScript("try{$(window).off('beforeunload');}catch(e){} arguments[arguments.length - 1]();");
+								}.bind(this))
+								.then(function() {
+									resolve();
+								}.bind(this));
+						}
+					}
 				}.bind(this));
-			} else {
-				capture.saveScreenShot(captureUrl).then(function() {
-					resolve();
-s				}.bind(this));
-			}
 
+			// this.driver.wait(this.driver.executeScript("return new Promise(function(r){window.addEventListener('load', r)});"));
+			// this.driver.executeScript("return SMTC.COMMON.ALERT_MESSAGE;");
+			// this.driver.executeScript("window.onbeforeunload = null;");
+			//
+			// if(/chrome/.test(this.currentBrowserName)) {
+			// 	capture.saveFullScreenShot(captureUrl).then(function() {
+			// 		return this.driver.getAllWindowHandles().then(function () {
+			// 			this.driver.switchTo().alert().accept();
+			// 			resolve();
+			// 		}.bind(this))
+			// 		;
+			// 		// resolve();
+			// 	}.bind(this));
+			// } else {
+			// 	capture.saveScreenShot(captureUrl).then(function() {
+			// 		this.driver.sleep(5000);
+			// 		return this.driver.getAllWindowHandles().then(function (data) {
+			// 			console.log(data);
+			// 			this.driver.sleep(5000);
+			// 			// this.driver.switchTo().alert().accept();
+			// 			this.driver.sleep(5000);
+			// 			resolve();
+			// 		}.bind(this));
+			// 	}.bind(this));
+			// }
+
+		}.bind(this));
+	},
+	waitDialog() {
+		return new Promise(function (resolve) {
+			setInterval(function () {
+				try {
+					this.driver.switchTo().alert();
+				} catch(e) {
+
+				}
+			}.bind(this), 500);
 		}.bind(this));
 	},
 	getCaptureList: function(deviceType) {
