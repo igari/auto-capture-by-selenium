@@ -4,20 +4,14 @@ const argv = require('argv');
 const webdriver = require('selenium-webdriver');
 const By = webdriver.By;
 const until = webdriver.until;
-
+const SauceLabs = require("saucelabs");
 const Capture = require('./scripts/capture');
-
-const BROWSER = {
-	CHROME: 'chrome',
-	FF: 'firefox',
-	IE: 'ie',
-	SAFARI: 'safari'
-};
 
 const DEVICE = {
 	PC: 'pc',
 	SP: 'sp'
 };
+
 const PATH = {
 	DEST_DIR: './output/'
 };
@@ -87,10 +81,15 @@ var WebDriver = {
 			pass: this.argv.options.basicPass
 		};
 
-		this.sauceLabs = {
-			username: this.argv.options.sauceLabsId,
-			accessKey: this.argv.options.sauceLabsPass
-		};
+		this.sauceLabsId = this.argv.options.sauceLabsId;
+		this.sauceLabsPass = this.argv.options.sauceLabsPass;
+
+		this.sauceLabsServer = "http://" + this.sauceLabsId + ":" + this.sauceLabsPass + "@ondemand.saucelabs.com:80/wd/hub";
+
+		this.saucelabs = new SauceLabs({
+			username: this.sauceLabsId,
+			password: this.sauceLabsPass
+		});
 
 		this.captureList = this.getCaptureList(DEVICE.PC);
 
@@ -156,8 +155,8 @@ var WebDriver = {
 				'browserName': 'safari',
 				"version": "latest",
 				"platform": "macOS 10.12",
-				"safariIgnoreFraudWarning": true,
-				"safariAllowPopups": false
+				// "safariIgnoreFraudWarning": true,
+				// "safariAllowPopups": false
 			},
 			iphoneSimulator: {
 				"appiumVersion": "1.6.3",
@@ -182,10 +181,11 @@ var WebDriver = {
 				let cap = this.caps[browser];
 				Object.assign(cap, {
 					"name": this.testName,
-					'username': this.sauceLabs.username,
-					'accessKey': this.sauceLabs.accessKey,
-					'unexpectedAlertBehaviour': 'ignore',
-					'locationContextEnabled': false
+					'username': this.sauceLabsId,
+					'accessKey': this.sauceLabsPass,
+					// 'seleniumVersion': '3.0.0',
+					// 'unexpectedAlertBehaviour': 'ignore',
+					// 'locationContextEnabled': false,
 				})
 			}
 		}
@@ -198,12 +198,11 @@ var WebDriver = {
 		}
 		this.currentCaps = this.caps[this.currentBrowser] || this.caps['firefoxWin'];
 		this.currentBrowserName = this.currentCaps.browserName;
-		if(this.sauceLabs.username && this.sauceLabs.accessKey) {
 
+		if(this.sauceLabsId && this.sauceLabsPass) {
 			this.driver = new webdriver.Builder()
 				.withCapabilities(this.currentCaps)
-				.usingServer("http://" + this.sauceLabs.username + ":" + this.sauceLabs.accessKey +
-					"@ondemand.saucelabs.com:80/wd/hub")
+				.usingServer(this.sauceLabsServer)
 				.build();
 
 		} else {
@@ -213,13 +212,16 @@ var WebDriver = {
 				.build();
 		}
 
+		// return this.driver.getSession().then(function (sessionid){
+		// 	this.driver.sessionID = sessionid.id_;
+		// }.bind(this));
+
 	},
 
 	initialConfig: function() {
-		return Promise.all([
-			this.driver.manage().timeouts().setScriptTimeout(1*60*60*1000),
-			this.driver.manage().timeouts().implicitlyWait(1000)
-		]);
+		this.driver.manage().timeouts().implicitlyWait(30*1000);
+		this.driver.manage().timeouts().setScriptTimeout(60*60*1000);
+		return Promise.resolve();
 	},
 
 	capturePages: function() {
@@ -246,6 +248,7 @@ var WebDriver = {
 		});
 	},
 	executeCapture: function(url) {
+		console.log(url);
 		var capture = new Capture(this.driver);
 		var captureUrl = this.getDestPath(this.getImageFileName(url));
 
@@ -266,74 +269,60 @@ var WebDriver = {
 							.then(function () {
 								return this.driver.sleep(1000);
 							}.bind(this))
-							.then(function () {
-								return capture.saveScreenShot(captureUrl)
-									.then(function () {
-										return this.driver.executeAsyncScript("document.cookie = 'hoge=fuga;'; try{$(window).off('beforeunload');}catch(e){} arguments[arguments.length - 1]();");
-									}.bind(this))
-									.then(function() {
-										resolve();
-									}.bind(this));
-							}.bind(this));
-					} else {
-						if(/chrome/.test(this.currentBrowserName)) {
-							return capture.saveFullScreenShot(captureUrl)
-								.then(function () {
-									return this.driver.executeAsyncScript("try{$(window).off('beforeunload');}catch(e){} arguments[arguments.length - 1]();");
-								}.bind(this))
-								.then(function() {
-									resolve();
-								}.bind(this));
-						} else {
-							return capture.saveScreenShot(captureUrl)
-								.then(function () {
-									return this.driver.executeAsyncScript("try{$(window).off('beforeunload');}catch(e){} arguments[arguments.length - 1]();");
-								}.bind(this))
-								.then(function() {
-									resolve();
-								}.bind(this));
-						}
 					}
-				}.bind(this));
-
-			// this.driver.wait(this.driver.executeScript("return new Promise(function(r){window.addEventListener('load', r)});"));
-			// this.driver.executeScript("return SMTC.COMMON.ALERT_MESSAGE;");
-			// this.driver.executeScript("window.onbeforeunload = null;");
-			//
-			// if(/chrome/.test(this.currentBrowserName)) {
-			// 	capture.saveFullScreenShot(captureUrl).then(function() {
-			// 		return this.driver.getAllWindowHandles().then(function () {
-			// 			this.driver.switchTo().alert().accept();
-			// 			resolve();
-			// 		}.bind(this))
-			// 		;
-			// 		// resolve();
-			// 	}.bind(this));
-			// } else {
-			// 	capture.saveScreenShot(captureUrl).then(function() {
-			// 		this.driver.sleep(5000);
-			// 		return this.driver.getAllWindowHandles().then(function (data) {
-			// 			console.log(data);
-			// 			this.driver.sleep(5000);
-			// 			// this.driver.switchTo().alert().accept();
-			// 			this.driver.sleep(5000);
-			// 			resolve();
-			// 		}.bind(this));
-			// 	}.bind(this));
-			// }
-
+				}.bind(this))
+				.then(function() {
+					var timeout = 60*60*1000;
+					return this.driver.wait(this.executeScript(this.unbindBeforeLoad.bind(this)), timeout);
+				}.bind(this))
+				.then(function() {
+					return this.driver.executeScript("try{$(window).off('beforeunload');window.onbeforeunload=null;}catch(e){}");
+				}.bind(this))
+				.then(function () {
+					if(/chrome/.test(this.currentBrowserName)) {
+						return capture.saveFullScreenShot(captureUrl);
+					} else {
+						return capture.saveScreenShot(captureUrl);
+					}
+				}.bind(this))
+				.then(function() {
+					resolve();
+				}.bind(this))
+				.catch(function (e) {
+					throw new Error(e);
+				});
 		}.bind(this));
 	},
-	waitDialog() {
-		return new Promise(function (resolve) {
-			setInterval(function () {
-				try {
-					this.driver.switchTo().alert();
-				} catch(e) {
-
+	executeScript: function (func) {
+		return this.driver.executeScript(this.func2str(func));
+	},
+	unbindBeforeLoad: function() {
+		var domready = document.readyState === 'complete';
+		if(domready) {
+			var jQueryScript = document.querySelector('script[src*="jquery"]');
+			if(jQueryScript.length > 0) {
+				var __jquery__ = jQuery && $;
+				if(__jquery__) {
+					try{
+						var beforeunload = __jquery__._data(__jquery__(window)[0], 'events').beforeunload;
+						return beforeunload instanceof Array && beforeunload.length > 0;
+					} catch(e) {
+						return false;
+					}
+				} else {
+					return false;
 				}
-			}.bind(this), 500);
-		}.bind(this));
+			} else {
+				return true;
+			}
+		} else {
+			return false;
+		}
+
+	},
+	func2str: function (func) {
+		let funcString = '\"' + func.toString().replace(/^function \(\) \{/, '').replace(/}$/, '').trim() + '\"';
+		return funcString;
 	},
 	getCaptureList: function(deviceType) {
 		console.log(this.argv.options.source);
@@ -373,6 +362,10 @@ var WebDriver = {
 	},
 	end: function() {
 		this.driver.quit();
+		this.saucelabs.updateJob(this.driver.sessionID, {
+			name: this.testName,
+			passed: true
+		});
 		console.log('---- COMPLETE ----');
 		console.timeEnd('Processing Time');
 	}
