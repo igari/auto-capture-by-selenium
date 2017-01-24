@@ -301,7 +301,6 @@ var WebDriver = {
 					return that.driver.wait(that.executeScript(that.unbindBeforeLoad.bind(this)), timeout, 'unbinding could not be completed.');
 				}.bind(this))
 				.then(function () {
-					that.driver.hoge();
 					return that.driver.executeScript("window.onbeforeunload=null; try{$(window).off('beforeunload');}catch(e){}");
 				}.bind(this))
 				.then(function () {
