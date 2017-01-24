@@ -38,7 +38,7 @@ Capture.prototype = {
 					return _this.deleteTempImages();
 				})
 				.then(function() {
-					resolve();
+					resolve(fileName);
 				});
 		});
 		return promise;
@@ -164,8 +164,8 @@ Capture.prototype = {
 					fs.writeFileSync(fileName, photoData, 'base64');
 
 					_this.imagePathList.push(fileName);
-					console.log('SAVE: ' + fileName);
-					resolve();
+					// console.log('\tSAVE: ' + fileName);
+					resolve(fileName);
 				});
 		});
 		return promise;
@@ -252,7 +252,7 @@ Capture.prototype = {
 	writeCombineImage: function(fileName, combineImage) {
 		return new Promise(function(resolve, reject) {
 			combineImage.write(fileName, function() {
-				console.log('COMBINED: ' + fileName);
+				console.log('\tCOMBINED: ' + fileName);
 				resolve();
 			});
 		});
@@ -262,7 +262,7 @@ Capture.prototype = {
 			gm(fileName)
 				.crop(width, height, x, y)
 				.write(fileName, function() {
-					console.log(`CLOPED: ${fileName}`);
+					console.log(`\tCLOPED: ${fileName}`);
 					resolve();
 				});
 		});
