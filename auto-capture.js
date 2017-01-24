@@ -408,9 +408,9 @@ describe('get screenshots', function () {
 	this.timeout(1/*s*/*1000/*ms*/*1000);
 
 	//TODO: why
-	before(function () {
-		return WebDriver.init();
-	});
+	// before(function () {
+		WebDriver.init();
+	// });
 
 	WebDriver.captureList.forEach(function (url) {
 		it(url, function () {
