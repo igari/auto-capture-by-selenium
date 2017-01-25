@@ -53,14 +53,14 @@ argv.option({
 });
 argv.option({
 	name: 'sauceLabsId',
-	short: '',
+	short: 'u',
 	type: 'string',
 	description: 'SauceLabsを利用する場合にID（ユーザー名）を指定します。',
 	example: `'npm run ss -- --sauceLabsId=xxxxxx --sauceLabsPass=xxxxxx'`
 });
 argv.option({
 	name: 'sauceLabsPass',
-	short: '',
+	short: 'k',
 	type: 'string',
 	description: 'SauceLabsを利用する場合にパスワードを指定します。',
 	example: `'npm run ss -- --sauceLabsId=xxxxxx --sauceLabsPass=xxxxxx'`
@@ -79,6 +79,7 @@ argv.option({
 	description: 'Basic認証が必要な場合にパスワードを指定します。',
 	example: `'npm run ss -- --basicAuthId=xxxxxx --basicAuthPass=xxxxxx'`
 });
+
 const options = argv.run().options;
 
 const Capture = require('./scripts/capture');
@@ -409,10 +410,15 @@ if(process.argv[1].match(/mocha$/)) {
 
 	});
 } else {
+	let promises = [];
 	WebDriver.init();
 	captureList.forEach(function (url) {
-		WebDriver.executeCapture(url).then(function () {
+		let promise = WebDriver.executeCapture(url).then(function () {
 			console.log(url);
 		});
+		promises.push(promise);
+	});
+	Promise.all(promises).then(function () {
+		WebDriver.end();
 	});
 }
