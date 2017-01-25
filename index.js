@@ -1,113 +1,111 @@
 "use strict";
-var assert = require("assert");
-const argv = require('argv');
+
+const assert = require("assert");
+
 const webdriver = require('selenium-webdriver');
 const By = webdriver.By;
 const until = webdriver.until;
-const SauceLabs = require("saucelabs");
-const Capture = require('./scripts/capture');
 
-const DEVICE = {
-	PC: 'pc',
-	SP: 'sp'
-};
+const SauceLabs = require("saucelabs");
+
+const argv = require('argv');
+argv.option({
+	name: 'width',
+	short: 'w',
+	type: 'string',
+	description: 'viewportサイズの幅',
+	example: `npm run ss -- --width=1024`
+});
+argv.option({
+	name: 'height',
+	short: 'h',
+	type: 'string',
+	description: 'viewportサイズの高さ',
+	example: `npm run ss -- --height=720`
+});
+argv.option({
+	name: 'reporter',
+	short: 'r',
+	type: 'string',
+	description: 'mocha + mochawesome用のパラメータ',
+	example: `npm run ss -- --reporter mochawesome`
+});
+argv.option({
+	name: 'reporter-options',
+	short: 'o',
+	type: 'string',
+	description: 'mocha + mochawesomeのオプション用のパラメータ',
+	example: `npm run ss -- --reporter-options reportDir=customReportDir,reportFilename=customReportFilename`
+});
+argv.option({
+	name: 'source',
+	short: 's',
+	type: 'path',
+	description: '対象のURLリストを指定します。',
+	example: `'npm run ss -- --source=./capture-list.json'`
+});
+argv.option({
+	name: 'browser',
+	short: 'b',
+	type: 'string',
+	description: '起動するブラウザを選択します。選択肢は[chrome, firefox, ie]のいずれかです。',
+	example: `'npm run ss -- --browser=chrome'`
+});
+argv.option({
+	name: 'sauceLabsId',
+	short: '',
+	type: 'string',
+	description: 'SauceLabsを利用する場合にID（ユーザー名）を指定します。',
+	example: `'npm run ss -- --sauceLabsId=xxxxxx --sauceLabsPass=xxxxxx'`
+});
+argv.option({
+	name: 'sauceLabsPass',
+	short: '',
+	type: 'string',
+	description: 'SauceLabsを利用する場合にパスワードを指定します。',
+	example: `'npm run ss -- --sauceLabsId=xxxxxx --sauceLabsPass=xxxxxx'`
+});
+argv.option({
+	name: 'basicAuthId',
+	short: 'i',
+	type: 'string',
+	description: 'Basic認証が必要な場合にID（ユーザー名）を指定します。',
+	example: `'npm run ss -- --basicAuthId=xxxxxx --basicAuthPass=xxxxxx'`
+});
+argv.option({
+	name: 'basicAuthPass',
+	short: 'p',
+	type: 'string',
+	description: 'Basic認証が必要な場合にパスワードを指定します。',
+	example: `'npm run ss -- --basicAuthId=xxxxxx --basicAuthPass=xxxxxx'`
+});
+const options = argv.run().options;
+
+const Capture = require('./scripts/capture');
+const urlListPath = options.source || './capture-list.json';
+const captureList = require(urlListPath);
 
 const PATH = {
 	DEST_DIR: './output/'
 };
 
-var WebDriver = {
+const WebDriver = {
 	init: function() {
 		this.start();
-		this.setOptions();
 		this.setParameters();
 		this.setBrowserCaps();
-		return this.buildBrowser();
-	},
-	setOptions: function() {
-
-		argv.option({
-			name: 'width',
-			short: 'w',
-			type: 'string',
-			description: 'viewportサイズの幅',
-			example: `mocha --width=1024`
-		});
-		argv.option({
-			name: 'height',
-			short: 'h',
-			type: 'string',
-			description: 'viewportサイズの高さ',
-			example: `mocha --height=720`
-		});
-		argv.option({
-			name: 'reporter',
-			short: 'r',
-			type: 'string',
-			description: 'mocha + mochawesome用のパラメータ',
-			example: `mocha --reporter mochawesome`
-		});
-		argv.option({
-			name: 'reporter-options',
-			short: 'o',
-			type: 'string',
-			description: 'mocha + mochawesomeのオプション用のパラメータ',
-			example: `mocha --reporter-options reportDir=customReportDir,reportFilename=customReportFilename`
-		});
-		argv.option({
-			name: 'source',
-			short: 's',
-			type: 'path',
-			description: '対象のURLリストを指定します。',
-			example: `'node auto-capture.js --source=./capture-list.json'`
-		});
-		argv.option({
-			name: 'browser',
-			short: 'b',
-			type: 'string',
-			description: '起動するブラウザを選択します。選択肢は[chrome, firefox, ie]のいずれかです。',
-			example: `'node auto-capture.js --browser=chrome'`
-		});
-		argv.option({
-			name: 'sauceLabsId',
-			short: '',
-			type: 'string',
-			description: 'SauceLabsを利用する場合にID（ユーザー名）を指定します。',
-			example: `'node auto-capture.js --sauceLabsId=xxxxxx --sauceLabsPass=xxxxxx'`
-		});
-		argv.option({
-			name: 'sauceLabsPass',
-			short: '',
-			type: 'string',
-			description: 'SauceLabsを利用する場合にパスワードを指定します。',
-			example: `'node auto-capture.js --sauceLabsId=xxxxxx --sauceLabsPass=xxxxxx'`
-		});
-		argv.option({
-			name: 'basicId',
-			short: 'i',
-			type: 'string',
-			description: 'Basic認証が必要な場合にID（ユーザー名）を指定します。',
-			example: `'node auto-capture.js --basicId=xxxxxx --basicPass=xxxxxx'`
-		});
-		argv.option({
-			name: 'basicPass',
-			short: 'p',
-			type: 'string',
-			description: 'Basic認証が必要な場合にパスワードを指定します。',
-			example: `'node auto-capture.js --basicId=xxxxxx --basicPass=xxxxxx'`
-		});
-
-		this.argv = argv.run();
+		this.buildBrowser();
+		this.initialConfig();
 	},
 	setParameters: function() {
 
 		this.basicAuth = {
-			id: this.argv.options.basicId,
-			pass: this.argv.options.basicPass
+			id: options.basicAuthId,
+			pass: options.basicAuthPass
 		};
 
-		this.sauceLabsId = this.argv.options.sauceLabsId;
-		this.sauceLabsPass = this.argv.options.sauceLabsPass;
+		this.sauceLabsId = options.sauceLabsId;
+		this.sauceLabsPass = options.sauceLabsPass;
 
 		this.sauceLabsServer = "http://" + this.sauceLabsId + ":" + this.sauceLabsPass + "@ondemand.saucelabs.com:80/wd/hub";
 
@@ -132,15 +130,12 @@ var WebDriver = {
 
 			//args: ["incognito"],
 
-			// 'excludeSwitches': [
-			// 	'disable-component-update'
-			// ]
+			'excludeSwitches': [
+				'disable-component-update'
+			]
 		};
 
 		this.testName = "Get Screenshots";
-
-		this.captureList = this.getCaptureList(DEVICE.PC);
-
 	},
 	setBrowserCaps: function () {
 
@@ -149,11 +144,11 @@ var WebDriver = {
 			'username': this.sauceLabsId,
 			'accessKey': this.sauceLabsPass,
 			// 'seleniumVersion': '3.0.0',
-			// 'unexpectedAlertBehaviour': 'ignore',
-			// 'locationContextEnabled': false,
+			'unexpectedAlertBehaviour': 'ignore',
+			'locationContextEnabled': false,
 		};
 
-		this.caps = {
+		this.browserCaps = {
 			chromeMac: {
 				'browserName': 'chrome',
 				'version': 'latest',
@@ -190,8 +185,8 @@ var WebDriver = {
 				'browserName': 'safari',
 				"version": "latest",
 				"platform": "macOS 10.12",
-				// "safariIgnoreFraudWarning": true,
-				// "safariAllowPopups": false
+				"safariIgnoreFraudWarning": true,
+				"safariAllowPopups": false
 			},
 			iphoneSimulator: {
 				"appiumVersion": "1.6.3",
@@ -208,23 +203,39 @@ var WebDriver = {
 				"platformVersion": "5.1",
 				"platformName": "Android",
 				"browserName": "Browser"
+			},
+			iphone: {
+				"appiumVersion": "1.5.3",
+				"deviceName": "iPhone 6s Device",
+				"deviceOrientation": "portrait",
+				"platformVersion": "9.3",
+				"platformName": "iOS",
+				"browserName": "Safari"
+			},
+			android: {
+				"appiumVersion": "1.5.3",
+				"deviceName": "Samsung Galaxy S7 Device",
+				"deviceOrientation": "portrait",
+				"platformVersion": "6.0",
+				"platformName": "Android",
+				"browserName": "chrome"
 			}
 		};
 
-		for(let browser in this.caps) {
-			if(this.caps.hasOwnProperty(browser)) {
-				let cap = this.caps[browser];
+		for(let browser in this.browserCaps) {
+			if(this.browserCaps.hasOwnProperty(browser)) {
+				let cap = this.browserCaps[browser];
 				Object.assign(cap, this.commonCap);
 			}
 		}
 	},
 	buildBrowser: function () {
 
-		this.currentBrowser = this.argv.options.browser || 'firefoxWin';
-		if(!this.caps[this.currentBrowser]) {
-			throw new Error('Your specified browser could not found.');
+		this.currentBrowser = options.browser || 'firefoxWin';
+		if(!this.browserCaps[this.currentBrowser]) {
+			throw new Error('Your specified browser could not found. Please specify from the following list.\n\n' + Object.keys(this.browserCaps).join('\n'));
 		}
-		this.currentCaps = this.caps[this.currentBrowser] || this.caps['firefoxWin'];
+		this.currentCaps = this.browserCaps[this.currentBrowser] || this.browserCaps['firefoxWin'];
 		this.currentBrowserName = this.currentCaps.browserName;
 
 		if(this.sauceLabsId && this.sauceLabsPass) {
@@ -239,38 +250,18 @@ var WebDriver = {
 				.forBrowser(this.currentCaps.browserName)
 				.build();
 		}
-
-		return this.initialConfig();
-
-		// return this.driver.getSession().then(function (sessionid){
-		// 	this.driver.sessionID = sessionid.id_;
-		// }.bind(this));
-
 	},
 
 	initialConfig: function() {
 		this.driver.manage().timeouts().implicitlyWait(30*1000);
 		this.driver.manage().timeouts().setScriptTimeout(24*60*60*1000);
 		this.driver.manage().timeouts().setScriptTimeout(24*60*60*1000);
-		if(this.argv.options.width && this.argv.options.height) {
-			this.driver.manage().window().setSize(+this.argv.options.width, +this.argv.options.height);
+		if(options.width && options.height) {
+			this.driver.manage().window().setSize(+options.width, +options.height);
 		}
-		return Promise.resolve();
-	},
-
-	capturePages: function() {
-		var promises = [];
-		// for(var i = 0, len = this.captureList.length; i < len; i++) {
-		var url = this.captureList[0];
-		describe(url, function () {
-			this.executeCapture(url);
+		this.driver.getSession().then(function (sessionid){
+			this.driver.sessionID = sessionid.id_;
 		}.bind(this));
-		url = this.captureList[1];
-		describe(url, function (done) {
-			this.executeCapture(url);
-		}.bind(this));
-		// }
-		return Promise.resolve();
 	},
 	executeCapture: function(url) {
 		var capture = new Capture(this.driver);
@@ -279,32 +270,32 @@ var WebDriver = {
 
 		return new Promise(function (resolve, reject) {
 
-			if (that.basicAuth.id && that.basicAuth.pass) {
+			if (this.basicAuth.id && this.basicAuth.pass) {
 				//Override
-				url = that.getUrlForBasicAuth(url, that.basicAuth.id, that.basicAuth.pass)
+				url = this.getUrlForBasicAuth(url, this.basicAuth.id, this.basicAuth.pass)
 			}
 
-			return that.driver.get(url)
+			return this.driver.get(url)
 				.then(function () {
-					if (that.basicAuth.id && that.basicAuth.pass && /safari/.test(that.currentBrowserName)) {
-						return that.driver.wait(until.elementLocated(By.id('ignoreWarning')), 10*1000, 'The button could not found.')
+					if (this.basicAuth.id && this.basicAuth.pass && /safari/.test(this.currentBrowserName)) {
+						return this.driver.wait(until.elementLocated(By.id('ignoreWarning')), 10*1000, 'The button could not found.')
 							.then(function (button) {
 								return button.click();
 							}.bind(this))
 							.then(function () {
-								return that.driver.sleep(3000);
+								return this.driver.sleep(1000);
 							}.bind(this));
 					}
 				}.bind(this))
 				.then(function () {
-					var timeout = 2/*m*/ * 60/*s*/ * 1000/*ms*/;
-					return that.driver.wait(that.executeScript(that.unbindBeforeLoad.bind(this)), timeout, 'unbinding could not be completed.');
+					var timeout = 30/*s*/ * 1000/*ms*/;
+					return this.driver.wait(this.executeScript(this.waitForUnbindingBeforeLoad.bind(this)), timeout, 'unbinding could not be completed.');
 				}.bind(this))
 				.then(function () {
-					return that.driver.executeScript("window.onbeforeunload=null; try{$(window).off('beforeunload');}catch(e){}");
+					return this.executeScript(this.unbindBeforeUnload.bind(this));
 				}.bind(this))
 				.then(function () {
-					if (/chrome/.test(that.currentBrowserName)) {
+					if (/chrome/.test(this.currentBrowserName)) {
 						return capture.saveFullScreenShot(captureUrl);
 					} else {
 						return capture.saveScreenShot(captureUrl);
@@ -323,7 +314,20 @@ var WebDriver = {
 	executeScript: function (func) {
 		return this.driver.executeScript(this.func2str(func));
 	},
-	unbindBeforeLoad: function() {
+	avoidGeoLocationPermissionDialog: function () {
+		return this.driver.wait(until.alertIsPresent(), 10*1000, 'Dialog could not found.')
+			.then(function (alert) {
+				console.log(alert);
+				return alert.dismiss();
+			})
+	},
+	unbindBeforeUnload: function() {
+		window.onbeforeunload=null;
+		try{
+			$(window).off('beforeunload');
+		} catch(e) {}
+	},
+	waitForUnbindingBeforeLoad: function() {
 		var iaPageLoaded = document.readyState === 'complete' &&
 			performance.timing.loadEventEnd &&
 			performance.timing.loadEventEnd > 0;
@@ -353,24 +357,6 @@ var WebDriver = {
 	func2str: function (func) {
 		let funcString = '\"' + func.toString().replace(/^function \(\) \{/, '').replace(/}$/, '').trim() + '\"';
 		return funcString;
-	},
-	getCaptureList: function(deviceType) {
-		var urlListPath = this.argv.options.source || './capture-list.json';
-		var CaptureJson = require(urlListPath);
-		var captureTarget = CaptureJson.captureTarget;
-		var captureList;
-
-		switch (deviceType) {
-			case DEVICE.PC:
-				captureList = captureTarget[0].pc;
-				break;
-			case DEVICE.SP:
-				captureList = captureTarget[0].sp;
-				break;
-			default:
-				break;
-		}
-		return captureList;
 	},
 	getUrlForBasicAuth: function(url, id, pass) {
 		let separator = '://';
@@ -403,23 +389,30 @@ var WebDriver = {
 	}
 };
 
-describe('get screenshots', function () {
-	this.timeout(1/*s*/*1000/*ms*/*1000);
+if(process.argv[1].match(/mocha$/)) {
+	describe('get screenshots', function () {
+		this.timeout(1/*m*/*60/*s*/*1000/*ms*/);
 
-	//TODO: why
-	// before(function () {
-		WebDriver.init();
-	// });
+		before(function () {
+			WebDriver.init();
+		});
 
-	WebDriver.captureList.forEach(function (url) {
-		it(url, function () {
-			return WebDriver.executeCapture(url);
+		captureList.forEach(function (url) {
+			it(url, function () {
+				return WebDriver.executeCapture(url);
+			});
+		});
+
+		after(function () {
+			WebDriver.end();
+		});
+
+	});
+} else {
+	WebDriver.init();
+	captureList.forEach(function (url) {
+		WebDriver.executeCapture(url).then(function () {
+			console.log(url);
 		});
 	});
-
-
-	after(function () {
-		WebDriver.end();
-	});
-
-});
+}
