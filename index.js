@@ -70,6 +70,7 @@ const WebDriver = {
 		this.commonCap = {
 			"unexpectedAlertBehaviour": "ignore",
 			"locationContextEnabled": false,
+			"webStorageEnabled": true,
 			// "seleniumVersion": "3.0.0",
 		};
 
@@ -83,8 +84,6 @@ const WebDriver = {
 				'browserstack.user': options.browserStackId,
 				'browserstack.key' : options.browserStackPass,
 				'browserstack.local' : options.browserStackLocal || 'false',
-				'browserstack.ie.enablePopups' : 'false',
-				'browserstack.safari.enablePopups' : 'false',
 				'browserstack.debug' : 'true',
 				'browserstack.video' : 'true',
 			});
@@ -124,6 +123,7 @@ const WebDriver = {
 					"os" : "Windows",
 					"os_version" : "10",
 					"browser_version" : "11.0",
+					'browserstack.ie.enablePopups' : 'false',
 				},
 				edge: {
 					"browserName": "Edge",
@@ -137,7 +137,8 @@ const WebDriver = {
 					"os" : "OS X",
 					"os_version" : "Sierra",
 					"safariIgnoreFraudWarning": true,
-					"safariAllowPopups": false
+					"safariAllowPopups": false,
+					'browserstack.safari.enablePopups' : 'false',
 				},
 				iphone: {
 					'browserName' : 'iPhone',
@@ -274,22 +275,19 @@ const WebDriver = {
 		}
 
 		if(this.currentServer) {
-			console.log(this.currentCaps)
-			console.log(this.currentServer)
 			this.driver = new webdriver.Builder()
 				.withCapabilities(this.currentCaps)
 				.usingServer(this.currentServer)
 				.build();
 		} else {
 			this.driver = new webdriver.Builder()
-				.forBrowser(options.browser)
+				.forBrowser(options.browser || 'firefox')
 				.build();
 		}
 	},
 
 	initialConfig: function() {
-		this.driver.manage().timeouts().implicitlyWait(30*1000);
-		this.driver.manage().timeouts().setScriptTimeout(24*60*60*1000);
+		this.driver.manage().timeouts().implicitlyWait(60*60*1000);
 		this.driver.manage().timeouts().setScriptTimeout(24*60*60*1000);
 		if(options.width && options.height) {
 			this.driver.manage().window().setSize(+options.width, +options.height);
@@ -323,7 +321,7 @@ const WebDriver = {
 					}
 				}.bind(this))
 				.then(function () {
-					var timeout = 30/*s*/ * 1000/*ms*/;
+					var timeout = 60/*s*/ * 1000/*ms*/;
 					return this.driver.wait(this.executeScript(this.waitForUnbindingBeforeLoad.bind(this)), timeout, 'unbinding could not be completed.');
 				}.bind(this))
 				.then(function () {
@@ -426,7 +424,7 @@ const WebDriver = {
 
 if(process.argv[1].match(/mocha$/)) {
 	describe('get screenshots', function () {
-		this.timeout(1/*m*/*60/*s*/*1000/*ms*/);
+		this.timeout(60/*m*/*60/*s*/*1000/*ms*/);
 
 		before(function () {
 			WebDriver.init();
