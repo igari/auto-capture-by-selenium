@@ -1,5 +1,7 @@
 "use strict";
 
+const options = require('./scripts/options.js');
+
 const assert = require("assert");
 
 const webdriver = require('selenium-webdriver');
@@ -7,80 +9,6 @@ const By = webdriver.By;
 const until = webdriver.until;
 
 const SauceLabs = require("saucelabs");
-
-const argv = require('argv');
-argv.option({
-	name: 'width',
-	short: 'w',
-	type: 'string',
-	description: 'viewportサイズの幅',
-	example: `npm run ss -- --width=1024`
-});
-argv.option({
-	name: 'height',
-	short: 'h',
-	type: 'string',
-	description: 'viewportサイズの高さ',
-	example: `npm run ss -- --height=720`
-});
-argv.option({
-	name: 'reporter',
-	short: 'r',
-	type: 'string',
-	description: 'mocha + mochawesome用のパラメータ',
-	example: `npm run ss -- --reporter mochawesome`
-});
-argv.option({
-	name: 'reporter-options',
-	short: 'o',
-	type: 'string',
-	description: 'mocha + mochawesomeのオプション用のパラメータ',
-	example: `npm run ss -- --reporter-options reportDir=customReportDir,reportFilename=customReportFilename`
-});
-argv.option({
-	name: 'source',
-	short: 's',
-	type: 'path',
-	description: '対象のURLリストを指定します。',
-	example: `'npm run ss -- --source=./capture-list.json'`
-});
-argv.option({
-	name: 'browser',
-	short: 'b',
-	type: 'string',
-	description: '起動するブラウザを選択します。選択肢は[chrome, firefox, ie]のいずれかです。',
-	example: `'npm run ss -- --browser=chrome'`
-});
-argv.option({
-	name: 'sauceLabsId',
-	short: 'u',
-	type: 'string',
-	description: 'SauceLabsを利用する場合にID（ユーザー名）を指定します。',
-	example: `'npm run ss -- --sauceLabsId=xxxxxx --sauceLabsPass=xxxxxx'`
-});
-argv.option({
-	name: 'sauceLabsPass',
-	short: 'k',
-	type: 'string',
-	description: 'SauceLabsを利用する場合にパスワードを指定します。',
-	example: `'npm run ss -- --sauceLabsId=xxxxxx --sauceLabsPass=xxxxxx'`
-});
-argv.option({
-	name: 'basicAuthId',
-	short: 'i',
-	type: 'string',
-	description: 'Basic認証が必要な場合にID（ユーザー名）を指定します。',
-	example: `'npm run ss -- --basicAuthId=xxxxxx --basicAuthPass=xxxxxx'`
-});
-argv.option({
-	name: 'basicAuthPass',
-	short: 'p',
-	type: 'string',
-	description: 'Basic認証が必要な場合にパスワードを指定します。',
-	example: `'npm run ss -- --basicAuthId=xxxxxx --basicAuthPass=xxxxxx'`
-});
-
-const options = argv.run().options;
 
 const Capture = require('./scripts/capture');
 const urlListPath = options.source || './capture-list.json';
@@ -105,15 +33,12 @@ const WebDriver = {
 			pass: options.basicAuthPass
 		};
 
-		this.sauceLabsId = options.sauceLabsId;
-		this.sauceLabsPass = options.sauceLabsPass;
-
-		this.sauceLabsServer = "http://" + this.sauceLabsId + ":" + this.sauceLabsPass + "@ondemand.saucelabs.com:80/wd/hub";
-
-		this.saucelabs = new SauceLabs({
-			username: this.sauceLabsId,
-			password: this.sauceLabsPass
+		this.sauceLabs = new SauceLabs({
+			username: options.sauceLabsId,
+			password: options.sauceLabsPass
 		});
+		this.sauceLabsServer = "http://" + options.sauceLabsId + ":" + options.sauceLabsPass + "@ondemand.saucelabs.com:80/wd/hub";
+		this.browserStackServer = 'http://hub-cloud.browserstack.com/wd/hub';
 
 		this.chromeOptions = {
 
@@ -131,97 +56,198 @@ const WebDriver = {
 
 			//args: ["incognito"],
 
-			'excludeSwitches': [
-				'disable-component-update'
+			"excludeSwitches": [
+				"disable-component-update",
+				"disable-popup-blocking"
 			]
 		};
 
 		this.testName = "Get Screenshots";
+
 	},
 	setBrowserCaps: function () {
 
 		this.commonCap = {
-			"name": this.testName,
-			'username': this.sauceLabsId,
-			'accessKey': this.sauceLabsPass,
-			// 'seleniumVersion': '3.0.0',
-			'unexpectedAlertBehaviour': 'ignore',
-			'locationContextEnabled': false,
+			"unexpectedAlertBehaviour": "ignore",
+			"locationContextEnabled": false,
+			// "seleniumVersion": "3.0.0",
 		};
 
-		this.browserCaps = {
-			chromeMac: {
-				'browserName': 'chrome',
-				'version': 'latest',
-				'platform': 'OS X 10.9',
-				'chromeOptions': this.chromeOptions
-			},
-			chromeWin: {
-				'browserName': 'chrome',
-				'version': 'latest',
-				'platform': 'Windows 10',
-				'chromeOptions': this.chromeOptions
-			},
-			firefoxWin: {
-				'browserName': 'firefox',
-				'version': 'latest',
-				'platform': 'Windows 10'
-			},
-			firefoxMac: {
-				'browserName': 'firefox',
-				'version': 'latest',
-				'platform': 'macOS 10.12'
-			},
-			ie11: {
-				'browserName': 'internet explorer',
-				'version': 'latest',
-				'platform': 'Windows 10'
-			},
-			edge: {
-				'browserName': 'MicrosoftEdge',
-				'version': '14.14393',
-				'platform': 'Windows 10'
-			},
-			safari: {
-				'browserName': 'safari',
-				"version": "latest",
-				"platform": "macOS 10.12",
-				"safariIgnoreFraudWarning": true,
-				"safariAllowPopups": false
-			},
-			iphoneSimulator: {
-				"appiumVersion": "1.6.3",
-				"deviceName": "iPhone Simulator",
-				"deviceOrientation": "portrait",
-				"platformVersion": "10.0",
-				"platformName": "iOS",
-				"browserName": "Safari"
-			},
-			androidSimulator: {
-				"appiumVersion": "1.5.3",
-				"deviceName": "Android Emulator",
-				"deviceOrientation": "portrait",
-				"platformVersion": "5.1",
-				"platformName": "Android",
-				"browserName": "Browser"
-			},
-			iphone: {
-				"appiumVersion": "1.5.3",
-				"deviceName": "iPhone 6s Device",
-				"deviceOrientation": "portrait",
-				"platformVersion": "9.3",
-				"platformName": "iOS",
-				"browserName": "Safari"
-			},
-			android: {
-				"appiumVersion": "1.5.3",
-				"deviceName": "Samsung Galaxy S7 Device",
-				"deviceOrientation": "portrait",
-				"platformVersion": "6.0",
-				"platformName": "Android",
-				"browserName": "chrome"
-			}
-		};
+		if(options.browserStackId && options.browserStackPass) {
+
+			Object.assign(this.commonCap, {
+				'build' : 'version1',
+				'project' : 'newintropage',
+				'acceptSslCerts' : 'true',
+				"resolution" : options.resolution || "1024x768",
+				'browserstack.user': options.browserStackId,
+				'browserstack.key' : options.browserStackPass,
+				'browserstack.local' : options.browserStackLocal || 'false',
+				'browserstack.ie.enablePopups' : 'false',
+				'browserstack.safari.enablePopups' : 'false',
+				'browserstack.debug' : 'true',
+				'browserstack.video' : 'true',
+			});
+
+			this.browserCaps = {
+
+				chromeMac: {
+					"browserName": "chrome",
+					'browser_version' : '55.0',
+					'os' : 'OS X',
+					'os_version' : 'Sierra',
+					"chromeOptions": this.chromeOptions,
+				},
+				chromeWin: {
+					"browserName": "chrome",
+					'browser_version' : '55.0',
+					'os' : 'Windows',
+					'os_version' : '10',
+					"chromeOptions": this.chromeOptions,
+				},
+				firefoxWin: {
+					"browserName": "firefox",
+					'browser_version' : '51.0 beta',
+					'os' : 'Windows',
+					'os_version' : '10',
+					'firefox_profile': null,
+				},
+				firefoxMac: {
+					"browserName": "firefox",
+					'browser_version' : '51.0 beta',
+					'os' : 'OS X',
+					'os_version' : 'Sierra',
+					'firefox_profile': null,
+				},
+				ie11: {
+					"browserName": "IE",
+					"os" : "Windows",
+					"os_version" : "10",
+					"browser_version" : "11.0",
+				},
+				edge: {
+					"browserName": "Edge",
+					"os" : "Windows",
+					"os_version" : "10",
+					"browser_version" : "14.0",
+				},
+				safari: {
+					"browserName": "safari",
+					"browser_version" : "10.0",
+					"os" : "OS X",
+					"os_version" : "Sierra",
+					"safariIgnoreFraudWarning": true,
+					"safariAllowPopups": false
+				},
+				iphone: {
+					'browserName' : 'iPhone',
+					'platform' : 'MAC',
+					'device' : 'iPhone 6S',
+				},
+				android: {
+					'browserName' : 'android',
+					'platform' : 'ANDROID',
+					'device' : 'Google Nexus 5',
+				}
+			};
+
+		}
+
+		if(options.sauceLabsId && options.sauceLabsPass) {
+
+			Object.assign(this.commonCap, {
+				"name": this.testName,
+				'username': options.sauceLabsId,
+				'accessKey': options.sauceLabsPass,
+				"screenResolution" : options.resolution || "1024x768",
+				"timeZone": "Tokyo",
+				"videoUploadOnPass": false,
+				"recordVideo": false,
+				"recordScreenshots": false,
+				"recordLogs": true,
+				"captureHtml": false,
+				"webdriverRemoteQuietExceptions": false
+			});
+
+			this.browserCaps = {
+
+				chromeMac: {
+					"browserName": "chrome",
+					"version": "latest",
+					"platform": "OS X 10.9",
+					"chromeOptions": this.chromeOptions,
+				},
+				chromeWin: {
+					"browserName": "chrome",
+					"version": "latest",
+					"platform": "Windows 10",
+					"chromeOptions": this.chromeOptions,
+				},
+				firefoxWin: {
+					"browserName": "firefox",
+					"version": "latest",
+					"platform": "Windows 10",
+					'firefox_profile': null,
+				},
+				firefoxMac: {
+					"browserName": "firefox",
+					"version": "latest",
+					"platform": "macOS 10.12",
+					'firefox_profile': null,
+				},
+				ie11: {
+					"browserName": "internet explorer",
+					"version": "latest",
+					"platform": "Windows 10",
+				},
+				edge: {
+					"browserName": "MicrosoftEdge",
+					"version": "14.14393",
+					"platform": "Windows 10",
+				},
+				safari: {
+					"browserName": "safari",
+					"version": "latest",
+					"platform": "macOS 10.12",
+					"safariIgnoreFraudWarning": true,
+					"safariAllowPopups": false
+				},
+				iphoneSimulator: {
+					"appiumVersion": "1.6.3",
+					"deviceName": "iPhone Simulator",
+					"deviceOrientation": "portrait",
+					"platformVersion": "10.0",
+					"platformName": "iOS",
+					"browserName": "Safari"
+				},
+				androidSimulator: {
+					"appiumVersion": "1.5.3",
+					"deviceName": "Android Emulator",
+					"deviceOrientation": "portrait",
+					"platformVersion": "5.1",
+					"platformName": "Android",
+					"browserName": "Browser"
+				},
+				iphone: {
+					"appiumVersion": "1.5.3",
+					"deviceName": "iPhone 6s Device",
+					"deviceOrientation": "portrait",
+					"platformVersion": "9.3",
+					"platformName": "iOS",
+					"browserName": "Safari",
+				},
+				android: {
+					"appiumVersion": "1.5.3",
+					"deviceName": "Samsung Galaxy S7 Device",
+					"deviceOrientation": "portrait",
+					"platformVersion": "6.0",
+					"platformName": "Android",
+					"browserName": "chrome"
+				}
+			};
+
+		}
+
 
 		for(let browser in this.browserCaps) {
 			if(this.browserCaps.hasOwnProperty(browser)) {
@@ -233,22 +259,30 @@ const WebDriver = {
 	buildBrowser: function () {
 
 		this.currentBrowser = options.browser || 'firefoxWin';
+
 		if(!this.browserCaps[this.currentBrowser]) {
-			throw new Error('Your specified browser could not found. Please specify from the following list.\n\n' + Object.keys(this.browserCaps).join('\n'));
+			assert(false, 'Your specified browser could not found. Please specify from the following list.\n\n' + Object.keys(this.browserCaps).join('\n'));
 		}
+
 		this.currentCaps = this.browserCaps[this.currentBrowser] || this.browserCaps['firefoxWin'];
 		this.currentBrowserName = this.currentCaps.browserName;
 
-		if(this.sauceLabsId && this.sauceLabsPass) {
+		if(options.sauceLabsId && options.sauceLabsPass) {
+			this.currentServer = this.sauceLabsServer;
+		} else if(options.browserStackId && options.browserStackPass) {
+			this.currentServer = this.browserStackServer;
+		}
+
+		if(this.currentServer) {
+			console.log(this.currentCaps)
+			console.log(this.currentServer)
 			this.driver = new webdriver.Builder()
 				.withCapabilities(this.currentCaps)
-				.usingServer(this.sauceLabsServer)
+				.usingServer(this.currentServer)
 				.build();
-
 		} else {
-
 			this.driver = new webdriver.Builder()
-				.forBrowser(this.currentCaps.browserName)
+				.forBrowser(options.browser)
 				.build();
 		}
 	},
@@ -379,8 +413,8 @@ const WebDriver = {
 	},
 	end: function() {
 		this.driver.quit();
-		if(this.sauceLabsId && this.sauceLabsPass) {
-			this.saucelabs.updateJob(this.driver.sessionID, {
+		if(options.sauceLabsId && options.sauceLabsPass) {
+			this.sauceLabs.updateJob(this.driver.sessionID, {
 				name: this.testName,
 				passed: true
 			});
