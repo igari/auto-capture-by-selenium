@@ -3,8 +3,9 @@
 const capsBrowserStack = function (options) {
 	return {
 		common: {
-			'build' : 'version1',
-			'project' : 'newintropage',
+			'name': this.testName,
+			'build' : 'version1.0.0',
+			'project' : 'PROJECT NAME',
 			'acceptSslCerts' : 'true',
 			"resolution" : options.resolution || "1024x768",
 			'browserstack.user': options.browserStackId,
@@ -72,11 +73,13 @@ const capsBrowserStack = function (options) {
 				'browserName' : 'iPhone',
 				'platform' : 'MAC',
 				'device' : 'iPhone 6S',
+				'deviceOrientation': 'portrait'
 			},
 			android: {
 				'browserName' : 'android',
 				'platform' : 'ANDROID',
 				'device' : 'Google Nexus 5',
+				'deviceOrientation': 'portrait'
 			}
 		}
 	}

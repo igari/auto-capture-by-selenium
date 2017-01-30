@@ -6,7 +6,7 @@ const webdriver = require('selenium-webdriver');
 const By = webdriver.By;
 const until = webdriver.until;
 const SauceLabs = require("saucelabs");
-const Capture = require('./scripts/capture');
+const Capture = require('./scripts/capture.js');
 const urlListPath = options.source || './capture-list.json';
 const captureList = require(urlListPath);
 
@@ -16,7 +16,7 @@ const CAPIUM = {
 		this.setParameters();
 		this.setBrowserCaps();
 		this.buildBrowser();
-		this.initialConfig();
+		return this.initialConfig();
 	},
 	setParameters: function() {
 
@@ -143,79 +143,71 @@ const CAPIUM = {
 	},
 
 	initialConfig: function() {
-		this.driver.manage().timeouts().implicitlyWait(60/*m*/*60/*s*/*1000/*ms*/);
-		this.driver.manage().timeouts().setScriptTimeout(24/*h*/*60/*m*/*60/*s*/*1000/*ms*/);
-		if(options.width && options.height) {
-			this.driver.manage().window().setSize(+options.width, +options.height);
-		}
-		this.driver.getSession().then(function (sessionid){
-			this.driver.sessionID = sessionid.id_;
-		}.bind(this));
+		return this.driver.manage().timeouts().implicitlyWait(60/*m*/*60/*s*/*1000/*ms*/)
+			.then(function () {
+				return this.driver.manage().timeouts().setScriptTimeout(60/*m*/*60/*s*/*1000/*ms*/);
+			}.bind(this))
+			.then(function () {
+				return this.driver.manage().timeouts().pageLoadTimeout(60/*m*/*60/*s*/*1000/*ms*/);
+			}.bind(this))
+			.then(function () {
+				return this.driver.manage().window().setSize(+options.width || 1200, +options.height || 800);
+			}.bind(this))
+			.then(function () {
+				return this.driver.getSession().then(function (sessionid){
+					this.driver.sessionID = sessionid.id_;
+				}.bind(this));
+			}.bind(this));
+
 	},
 	executeCapture: function(url) {
+
 		var capture = new Capture(this.driver);
 		var captureUrl = this.getDestPath(this.getImageFileName(url));
-		var that = this;
 
-		return new Promise(function (resolve, reject) {
+		if (this.basicAuth.id && this.basicAuth.pass) {
+			//Override
+			url = this.getUrlForBasicAuth(url, this.basicAuth.id, this.basicAuth.pass)
+		}
 
-			if (this.basicAuth.id && this.basicAuth.pass) {
-				//Override
-				url = this.getUrlForBasicAuth(url, this.basicAuth.id, this.basicAuth.pass)
-			}
-
-			return this.driver.get(url)
-				.then(function () {
-					if (this.basicAuth.id && this.basicAuth.pass && /safari/.test(this.currentBrowserName)) {
-						return this.driver.wait(until.elementLocated(By.id('ignoreWarning')), 10/*s*/*1000/*ms*/, 'The button could not found.')
-							.then(function (button) {
-								return button.click();
-							}.bind(this))
-							.then(function () {
-								return this.driver.sleep(1000/*ms*/);
-							}.bind(this));
-					}
-				}.bind(this))
-				.then(function () {
-					var timeout = 60/*s*/ * 1000/*ms*/;
-					return this.driver.wait(this.executeScript(this.waitForUnbindingBeforeLoad), timeout, 'unbinding could not be completed.');
-				}.bind(this))
-				.then(function () {
-					return this.executeScript(this.unbindBeforeUnload);
-				}.bind(this))
-				.then(function () {
-					if (/chrome/.test(this.currentBrowserName)) {
-						return capture.saveFullScreenShot(captureUrl);
-					} else {
-						return capture.saveScreenShot(captureUrl);
-					}
-				}.bind(this))
-				.then(function () {
-					resolve();
-				}.bind(this))
-				.catch(function (error) {
-					assert(false, error);
-					reject(error);
-					// throw new Error(e);
-				});
-		}.bind(this));
+		return this.driver.get(url)
+			.then(function () {
+				if (!this.isBrowserStack && this.basicAuth.id && this.basicAuth.pass && /safari/.test(this.currentBrowserName)) {
+					return this.driver.wait(until.elementLocated(By.id('ignoreWarning')), 10/*s*/*1000/*ms*/, 'The button could not found.')
+						.then(function (button) {
+							return button.click();
+						}.bind(this))
+						.then(this.driver.sleep.bind(this.driver, 1/*s*/*1000/*ms*/));
+				}
+			}.bind(this))
+			.then(function () {
+				var timeout = 60/*s*/ * 1000/*ms*/;
+				return this.driver.wait(this.executeScript(this.waitForUnbindingBeforeLoad), timeout, 'unbinding could not be completed.');
+			}.bind(this))
+			.then(function () {
+				return this.executeScript(this.unbindBeforeUnload);
+			}.bind(this))
+			.then(function () {
+				if (/chromeMac|chromeWin|iphone|android/.test(this.currentBrowser)) {
+					return capture.saveFullScreenShot(captureUrl);
+				} else {
+					return capture.saveScreenShot(captureUrl);
+				}
+			}.bind(this))
+			.catch(function (error) {
+				assert(false, error);
+			});
 	},
 	executeScript: function (func) {
-
 		return this.driver.executeScript('return !' + this.func2str(func) + '();');
-	},
-	avoidGeoLocationPermissionDialog: function () {
-		return this.driver.wait(until.alertIsPresent(), 10/*s*/*1000/*ms*/, 'Dialog could not found.')
-			.then(function (alert) {
-				console.log(alert);
-				return alert.dismiss();
-			})
 	},
 	unbindBeforeUnload: function() {
 		window.onbeforeunload = null;
-		if(jQuery || $) {
-			$(window).off('beforeunload');
-		}
+		try {
+			if(jQuery || $) {
+				$(window).off('beforeunload');
+			}
+		} catch(e) {}
 	},
 	waitForUnbindingBeforeLoad: function() {
 		var iaPageLoaded = document.readyState === 'complete' &&
@@ -224,7 +216,7 @@ const CAPIUM = {
 
 		if(iaPageLoaded) {
 			var jQueryScript = document.querySelector('script[src*="jquery"]');
-			if(jQueryScript.length > 0) {
+			if(jQueryScript && jQueryScript.length > 0) {
 				var __jquery__ = jQuery || $;
 				if(__jquery__) {
 					try{
@@ -245,8 +237,7 @@ const CAPIUM = {
 
 	},
 	func2str: function (func) {
-		const funcString = func.toString();
-		return funcString;
+		return func.toString();
 	},
 	getUrlForBasicAuth: function(url, id, pass) {
 		let separator = '://';
@@ -268,13 +259,14 @@ const CAPIUM = {
 		return Promise.resolve();
 	},
 	end: function() {
-		this.driver.quit();
-		if(this.isSauceLabs) {
-			this.sauceLabs.updateJob(this.driver.sessionID, {
-				name: this.testName,
-				passed: true
-			});
-		}
+		return this.driver.quit().then(function () {
+			if(this.isSauceLabs) {
+				return this.sauceLabs.updateJob(this.driver.sessionID, {
+					name: this.testName,
+					passed: true
+				});
+			}
+		}.bind(this));
 		// console.log('\t---- COMPLETE ----');
 		// console.timeEnd('\tProcessing Time');
 	}
@@ -287,7 +279,11 @@ if(isMocha) {
 		this.timeout(60/*m*/*60/*s*/*1000/*ms*/);
 
 		before(function () {
-			CAPIUM.init();
+			return CAPIUM.init();
+		});
+
+		after(function () {
+			return CAPIUM.end();
 		});
 
 		captureList.forEach(function (url) {
@@ -295,11 +291,6 @@ if(isMocha) {
 				return CAPIUM.executeCapture(url);
 			});
 		});
-
-		after(function () {
-			CAPIUM.end();
-		});
-
 	});
 
 } else {
@@ -312,7 +303,5 @@ if(isMocha) {
 		});
 		promises.push(promise);
 	});
-	Promise.all(promises).then(function () {
-		CAPIUM.end();
-	});
+	Promise.all(promises).then(CAPIUM.end.bind(CAPIUM));
 }

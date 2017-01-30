@@ -12,263 +12,243 @@ const PATH = {
 	TEMP_HCOMB_FILENAME: 'temp_hcomb_v{v}.png'
 };
 
-var Capture = function(driver) {
+const Capture = function(driver) {
 	this.driver = driver;
 	this.imagePathList = [];
 };
+
 Capture.prototype = {
-	saveFullScreenShot: function(fileName) {
-		var _this = this;
-		var promise = new Promise(function(resolve, reject) {
-			Promise.all([
-					_this.driver.executeScript('document.querySelector("body").style.overflow = "hidden";'),
-					_this.driver.executeScript('return document.body.scrollHeight'),
-					_this.driver.executeScript('return document.body.scrollWidth'),
-					_this.driver.executeScript('return window.innerHeight'),
-					_this.driver.executeScript('return window.innerWidth')
-				])
-				.then(function(data) {
-					return _this.captureAllPages(fileName, data);
-				})
-				.then(function() {
-					return _this.combineTempImages(fileName);
-				})
-				.then(function() {
-					//最後に残ったtemp画像を削除しておく
-					return _this.deleteTempImages();
-				})
-				.then(function() {
-					resolve(fileName);
-				});
-		});
-		return promise;
+	saveScreenShot: function(fileName) {
+		return this.driver.takeScreenshot()
+			.then(function(photoData) {
+				Util.makeDir(fileName).then(function () {
+					fs.writeFileSync(fileName, photoData, 'base64');
+					this.imagePathList.push(fileName);
+					// console.log('\tSAVE: ' + fileName);
+					return fileName;
+				}.bind(this));
+			}.bind(this));
 	},
-	captureAllPages: function(fileName, data) {
-		var _this = this;
-		var _resolve;
-		var _reject;
+	saveFullScreenShot: function(fileName) {
+		return this.driver.executeScript(
+				'document.querySelector("body").style.overflow = "hidden";' +
+				// 'document.querySelector(".l-header-wrapper-nonav").style.position = "absolute";' +
+				'return window.devicePixelRatio;'
+			)
+			.then(function (devicePixelRatio) {
+				this.devicePixelRatio = +devicePixelRatio;
+			}.bind(this))
+			.then(this.deleteTempImages.bind(this))
+			.then(function(data) {
+				return this.captureFullPage(fileName, data);
+			}.bind(this))
+			.then(this.combineTempImages.bind(this, fileName))
+			// .then(function () {
+			// 	console.log(this.scrollWidth,this.scrollHeight)
+			// 	return new Promise(function (resolve) {
+			// 		gm(fileName).scale(1200, 1200).write(fileName, resolve);
+			// 	});
+			// })
+			// .then(this.deleteTempImages.bind(this))
+			.then(function() { return fileName; });
+	},
+	captureFullPage: function() {
 
-		var totalHeight = data[1];
-		var totalWidth = data[2];
-		var windowHeight = data[3];
-		var windowWidth = data[4];
-		var horizontalScrollCount = Math.ceil(totalWidth / windowWidth); //ウインドウ幅単位で横スクロールできる回数
-		var verticalScrollCount = Math.ceil(totalHeight / windowHeight); //ウインドウ幅単位で縦スクロールできる回数
-		var vScrollIndex = 0; //現在の横スクロールインデックス
-		var hScrollIndex = 0; //現在の縦スクロールインデックス
+		return new Promise(function(resolve) {
 
-		var _captureAllPages = function() {
-			var isLastHorizontalScroll = hScrollIndex >= horizontalScrollCount - 1;
-			var isLastVerticalScroll = vScrollIndex >= verticalScrollCount - 1;
+			let verticalScrollIndex = 0;
+			let horizontalScrollIndex = 0;
 
-			_this.saveScreenShotAndScroll(
-				PATH.TEMP_DIR + PATH.TEMP_FILENAME.replace('{h}', hScrollIndex).replace('{v}', vScrollIndex),
-				totalHeight,
-				totalWidth,
-				windowHeight,
-				windowWidth,
-				vScrollIndex,
-				hScrollIndex
-			).then(function() {
-				if (isLastHorizontalScroll && isLastVerticalScroll) {
-					_resolve();
+			let capturePage = function () {
+
+				Promise.all([
+						this.driver.executeScript('return document.body.scrollHeight'),
+						this.driver.executeScript('return document.body.scrollWidth'),
+						this.driver.executeScript('return window.innerHeight'),
+						this.driver.executeScript('return window.innerWidth')
+					])
+					.then(function (data) {
+
+						let scrollHeight = data[0];
+						let scrollWidth = data[1];
+						let windowHeight = data[2];
+						let windowWidth = data[3];
+
+						let horizontalScrollMaxCount = Math.ceil(scrollWidth / windowWidth);
+						let verticalScrollMaxCount = Math.ceil(scrollHeight / windowHeight);
+
+						let isLastHorizontalScroll = horizontalScrollIndex === horizontalScrollMaxCount - 1;
+						let isLastVerticalScroll = verticalScrollIndex === verticalScrollMaxCount - 1;
+
+						let pathName = PATH.TEMP_DIR + PATH.TEMP_FILENAME.replace('{h}', horizontalScrollIndex+'').replace('{v}', verticalScrollIndex+'');
+
+						this.saveScreenShotAndScroll(pathName, scrollHeight, scrollWidth, windowHeight, windowWidth, verticalScrollIndex, horizontalScrollIndex)
+							.then(function () {
+								if (isLastHorizontalScroll && isLastVerticalScroll) {
+									resolve();
+								} else {
+									if (isLastHorizontalScroll) {
+										horizontalScrollIndex = 0;
+										verticalScrollIndex++;
+									} else {
+										horizontalScrollIndex++;
+									}
+									capturePage();
+								}
+							});
+					}.bind(this));
+			}.bind(this);
+
+			capturePage();
+
+		}.bind(this));
+	},
+	saveScreenShotAndScroll: function(fileName, scrollHeight, scrollWidth, windowHeight, windowWidth, verticalScrollIndex, horizontalScrollIndex) {
+
+		var currentScrollPosY = windowHeight * verticalScrollIndex;
+		var currentScrollPosX = windowWidth * horizontalScrollIndex;
+		var currentCapturedWidth = currentScrollPosX + windowWidth;
+		var currentCapturedHeight = currentScrollPosY + windowHeight;
+
+		var extraWidth;
+		var extraHeight;
+
+		var isOverScrollOfHorizontal = scrollWidth < currentCapturedWidth;
+		var isOverScrollOfVertical = scrollHeight < currentCapturedHeight;
+
+		if (isOverScrollOfHorizontal) {
+			extraWidth = scrollWidth - currentScrollPosX;
+		}
+
+		if (isOverScrollOfVertical) {
+			extraHeight = scrollHeight - currentScrollPosY;
+		}
+
+		return this.driver.executeScript('window.scrollTo(' + currentScrollPosX + ',' + currentScrollPosY + ')')
+			.then(this.driver.sleep.bind(this.driver, 500))
+			.then(this.saveScreenShot.bind(this, fileName))
+			.then(function() {
+				if (extraWidth > 0) {
+					return this.cropImage(fileName, extraWidth, windowHeight, windowWidth - extraWidth, 0);
+				}
+			}.bind(this))
+			.then(function() {
+				if (extraHeight > 0) {
+					return this.cropImage(fileName, windowWidth, extraHeight, 0, windowHeight - extraHeight);
+				}
+			}.bind(this));
+	},
+	combineTempImages: function(fileName) {
+
+		this.hashPathList = this.imagePathList.reduce(function(dictionary, data, index) {
+			var hashV = parseInt(data.match(/v[0-9]+/)[0].slice(1));
+
+			if (dictionary[hashV] === undefined) {
+				dictionary[hashV] = [];
+			}
+			dictionary[hashV].push(data);
+			return dictionary;
+		}, {});
+
+		return this.combineHorizontalTempImages()
+			.then(this.combineVerticalTempImages.bind(this))
+			.then(function (combineImage) {
+				return this.saveCombineImage(fileName, combineImage)
+			}.bind(this));
+	},
+	combineVerticalTempImages: function (horizontalCombList) {
+		return this.appendTempImages(horizontalCombList, false);
+	},
+	combineHorizontalTempImages: function() {
+
+		return new Promise(function(resolve) {
+
+			let horizontalCombList = [];
+
+			let combineHorizontalTempImage = function(vScrollIndex) {
+
+				let hasNextData = this.hashPathList[vScrollIndex] !== undefined;
+
+				if (!hasNextData) {
+					resolve(horizontalCombList);
 					return;
 				}
 
-				if (isLastHorizontalScroll) {
-					hScrollIndex = 0;
-					++vScrollIndex;
-				} else {
-					++hScrollIndex;
-				}
-				_captureAllPages();
-			});
-		};
+				let imageList = this.hashPathList[vScrollIndex];
+				let templateFileName = PATH.TEMP_DIR + PATH.TEMP_HCOMB_FILENAME.replace('{v}', vScrollIndex);
 
-		return new Promise(function(resolve, reject) {
-			_resolve = resolve;
-			_reject = reject;
+				this.appendTempImages(imageList, true)
+					.then(function (combineImage) {
+						return this.saveCombineImage(templateFileName, combineImage);
+					}.bind(this))
+					.then(function() {
+						horizontalCombList.push(templateFileName);
+						combineHorizontalTempImage(++vScrollIndex);
+					});
 
-			_this.deleteTempImages().then(function() {
-				_captureAllPages();
-			});
-		});
+			}.bind(this);
+
+			combineHorizontalTempImage(0);
+
+		}.bind(this));
 	},
-	saveScreenShotAndScroll: function(
-		fileName,
-		totalHeight,
-		totalWidth,
-		windowHeight,
-		windowWidth,
-		vScrollIndex,
-		hScrollIndex
-	) {
-		var _this = this;
-		var promise = new Promise(function(resolve, reject) {
-			var scrollHeight = windowHeight * vScrollIndex;
-			var scrollWidth = windowWidth * hScrollIndex;
-
-			var extraWidth;
-			var extraHeight;
-			var isOverScrollOfHorizontal = totalWidth < scrollWidth + windowWidth;
-			var isOverScrollOfVertical = totalHeight < scrollHeight + windowHeight;
-
-			if (isOverScrollOfHorizontal) {
-				extraWidth = totalWidth - scrollWidth;
+	appendTempImages: function (imageList, isHorizontalCombine) {
+		let combineImage = null;
+		for (let image of imageList) {
+			if (combineImage === null) {
+				combineImage = gm(image);
+			} else {
+				combineImage.append(image, isHorizontalCombine);
 			}
-			if (isOverScrollOfVertical) {
-				extraHeight = totalHeight - scrollHeight;
-			}
+		}
+		return Promise.resolve(combineImage);
+	},
+	saveCombineImage: function(fileName, combineImage) {
 
-			_this.driver.executeScript(
-				'window.scrollTo(' + scrollWidth + ',' + scrollHeight + ')'
-			)
+		if(!combineImage) {
+			return Promise.resolve();
+		}
+
+		return Util.makeDir(fileName)
 			.then(function() {
-				//スクロールが完了していない場合があるためwaitさせる
-				return new Promise(function( resolve, reject ) {
-					setTimeout(function() { resolve(); }, 100);
-				});
-			})
-			.then(function() {
-				return _this.saveScreenShot(fileName);
-			})
-			.then(function() {
-				//横スクロールでmaxスクロール時に余り部分のみを切抜き
-				if (extraWidth > 0) {
-					return _this.cropImage(fileName, extraWidth, windowHeight, windowWidth - extraWidth, 0);
-				}
-			})
-			.then(function() {
-				//縦スクロールでmaxスクロール時に余り部分のみを切抜き
-				if (extraHeight > 0) {
-					return _this.cropImage(fileName, windowWidth, extraHeight, 0, windowHeight - extraHeight);
-				}
-			})
-			.then(function() {
-				resolve();
+				return this.writeCombineImage(fileName, combineImage);
+			}.bind(this))
+			.catch(function(err) {
+				if (err) throw err;
 			});
-		});
-		return promise;
-	},
-	saveScreenShot: function(fileName) {
-		var _this = this;
-		var photoData;
-
-		var promise = new Promise(function(resolve, reject) {
-			_this.driver.takeScreenshot()
-				.then(function(data) {
-					photoData = data;
-					return Util.makeDir(fileName);
-				})
-				.then(function() {
-					fs.writeFileSync(fileName, photoData, 'base64');
-
-					_this.imagePathList.push(fileName);
-					// console.log('\tSAVE: ' + fileName);
-					resolve(fileName);
-				});
-		});
-		return promise;
-	},
-	combineTempImages: function(fileName) {
-		var _this = this;
-
-		return new Promise(function(resolve, reject) {
-			_this.hashPathList = _this.imagePathList.reduce(function(dictionary, data, index) {
-				var hashV = parseInt(data.match(/v[0-9]+/)[0].slice(1));
-
-				if (dictionary[hashV] === undefined) {
-					dictionary[hashV] = [];
-				}
-				dictionary[hashV].push(data);
-				return dictionary;
-			}, {});
-
-			//画像を行ごとに横連携した後に縦連携して結合を完成させる
-			_this.combineHorizontalTempImages()
-				.then(function(horizontalCombList) {
-					return _this.saveCombineImage(fileName, horizontalCombList, false);
-				})
-				.then(function() {
-					resolve();
-				});
-		});
-	},
-	combineHorizontalTempImages: function() {
-		var _this = this;
-		var horizontalCombList = [];
-		var _resolve;
-		var _reject;
-
-		var _combineHorizontalTempImages = function(vScrollIndex) {
-			var hasNextData = _this.hashPathList[vScrollIndex] !== undefined;
-			if (!hasNextData) {
-				_resolve(horizontalCombList);
-				return;
-			}
-
-			var imageList = _this.hashPathList[vScrollIndex];
-			var combFileName = PATH.TEMP_DIR + PATH.TEMP_HCOMB_FILENAME.replace('{v}', vScrollIndex);
-
-			_this.saveCombineImage(
-				combFileName,
-				imageList,
-				true
-			).then(function() {
-				horizontalCombList.push(combFileName);
-				_combineHorizontalTempImages(++vScrollIndex);
-			});
-		};
-
-		return new Promise(function(resolve, reject) {
-			_resolve = resolve;
-			_reject = reject;
-			_combineHorizontalTempImages(0);
-		});
-	},
-	saveCombineImage: function(fileName, imageList, isHorizontalCombine) {
-		var _this = this;
-		var combineImage;
-
-		return new Promise(function(resolve, reject) {
-			for (var image of imageList) {
-				if (combineImage === undefined) {
-					combineImage = gm(image);
-				} else {
-					combineImage.append(image, isHorizontalCombine);
-				}
-			}
-
-			Util.makeDir(fileName)
-				.then(function() {
-					return _this.writeCombineImage(fileName, combineImage);
-				})
-				.then(function(err) {
-					if (err) throw err;
-					resolve();
-				});
-		});
 	},
 	writeCombineImage: function(fileName, combineImage) {
 		return new Promise(function(resolve, reject) {
-			combineImage.write(fileName, function() {
-				console.log('\tCOMBINED: ' + fileName);
-				resolve();
-			});
+			try {
+				combineImage.write(fileName, function() {
+					resolve();
+				});
+			} catch(e) {
+				reject(e)
+			}
 		});
 	},
 	cropImage: function(fileName, width, height, x, y) {
+		width = width * this.devicePixelRatio;
+		height = height * this.devicePixelRatio;
+		x = x * this.devicePixelRatio;
+		y = y * this.devicePixelRatio;
+
 		return new Promise(function(resolve, reject) {
-			gm(fileName)
-				.crop(width, height, x, y)
-				.write(fileName, function() {
-					console.log(`\tCLOPED: ${fileName}`);
-					resolve();
-				});
+			try {
+				console.log(width, height, x, y);
+				gm(fileName)
+					.crop(width, height, x, y)
+					.write(fileName, function() {
+						console.log(`\tCLOPED: ${fileName}`);
+						resolve();
+					});
+			} catch(e) {
+				reject(e);
+			}
 		});
 	},
 	deleteTempImages: function() {
-		var _this = this;
 		return new Promise(function(resolve, reject) {
 			del([PATH.TEMP_DIR + '*']).then(function() {
 				resolve();
