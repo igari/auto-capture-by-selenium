@@ -40,7 +40,7 @@ argv.option({
 argv.option({
 	name: 'browser',
 	short: 'b',
-	type: 'string',
+	type: 'list,string',
 	description: '起動するブラウザを選択します。選択肢は[chrome, firefox, ie]のいずれかです。',
 	example: `'npm run ss -- --browser=chrome'`
 });

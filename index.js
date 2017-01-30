@@ -6,11 +6,15 @@ const webdriver = require('selenium-webdriver');
 const By = webdriver.By;
 const until = webdriver.until;
 const SauceLabs = require("saucelabs");
-const Capture = require('./scripts/capture.js');
 const urlListPath = options.source || './capture-list.json';
 const captureList = require(urlListPath);
+const browsers = options.browser || ['firefoxWin'];
+const Capium = function (browser) {
+	this.browser = browser;
+};
+const Capture = require('./scripts/capture.js');
 
-const CAPIUM = {
+Capium.prototype = {
 	init: function() {
 		this.start();
 		this.setParameters();
@@ -113,31 +117,29 @@ const CAPIUM = {
 		}
 	},
 	buildBrowser: function () {
-
-		this.currentBrowser = options.browser || 'firefoxWin';
-
-		if(!this.browserCaps[this.currentBrowser]) {
+		
+		if(!this.browserCaps[this.browser]) {
 			assert(false, 'Your specified browser could not found. Please specify from the following list.\n\n' + Object.keys(this.browserCaps).join('\n'));
 		}
 
-		this.currentCaps = this.browserCaps[this.currentBrowser] || this.browserCaps['firefoxWin'];
-		this.currentBrowserName = this.currentCaps.browserName;
+		this.browserCap = this.browserCaps[this.browser] || this.browserCaps['firefoxWin'];
+		this.browserName = this.browserCap.browserName;
 
 		if(this.isSauceLabs) {
-			this.currentServer = this.sauceLabsServer;
+			this.remoteTesingServer = this.sauceLabsServer;
 		} else if(this.isBrowserStack) {
-			this.currentServer = this.browserStackServer;
+			this.remoteTesingServer = this.browserStackServer;
 		}
 
 
-		if(this.currentServer) {
+		if(this.remoteTesingServer) {
 			this.driver = new webdriver.Builder()
-				.withCapabilities(this.currentCaps)
-				.usingServer(this.currentServer)
+				.withCapabilities(this.browserCap)
+				.usingServer(this.remoteTesingServer)
 				.build();
 		} else {
 			this.driver = new webdriver.Builder()
-				.withCapabilities(this.currentCaps)
+				.withCapabilities(this.browserCap)
 				.build();
 		}
 	},
@@ -162,7 +164,8 @@ const CAPIUM = {
 	},
 	executeCapture: function(url) {
 
-		var capture = new Capture(this.driver);
+		var capture = new Capture(this);
+
 		var captureUrl = this.getDestPath(this.getImageFileName(url));
 
 		if (this.basicAuth.id && this.basicAuth.pass) {
@@ -172,7 +175,7 @@ const CAPIUM = {
 
 		return this.driver.get(url)
 			.then(function () {
-				if (!this.isBrowserStack && this.basicAuth.id && this.basicAuth.pass && /safari/.test(this.currentBrowserName)) {
+				if (!this.isBrowserStack && this.basicAuth.id && this.basicAuth.pass && /safari/.test(this.browserName)) {
 					return this.driver.wait(until.elementLocated(By.id('ignoreWarning')), 10/*s*/*1000/*ms*/, 'The button could not found.')
 						.then(function (button) {
 							return button.click();
@@ -188,7 +191,7 @@ const CAPIUM = {
 				return this.executeScript(this.unbindBeforeUnload);
 			}.bind(this))
 			.then(function () {
-				if (/chromeMac|chromeWin|iphone|android/.test(this.currentBrowser)) {
+				if (/chromeMac|chromeWin|iphone|android/.test(this.browser)) {
 					return capture.saveFullScreenShot(captureUrl);
 				} else {
 					return capture.saveScreenShot(captureUrl);
@@ -197,9 +200,6 @@ const CAPIUM = {
 			.catch(function (error) {
 				assert(false, error);
 			});
-	},
-	executeScript: function (func) {
-		return this.driver.executeScript('return !' + this.func2str(func) + '();');
 	},
 	unbindBeforeUnload: function() {
 		window.onbeforeunload = null;
@@ -239,6 +239,9 @@ const CAPIUM = {
 	func2str: function (func) {
 		return func.toString();
 	},
+	executeScript: function (func) {
+		return this.driver.executeScript('return (' + this.func2str(func) + '());');
+	},
 	getUrlForBasicAuth: function(url, id, pass) {
 		let separator = '://';
 		let splitURL = url.split(separator);
@@ -251,7 +254,7 @@ const CAPIUM = {
 		return url.split('://')[1].replace(/\//g, '_') + '.png';
 	},
 	getDestPath: function(fileName) {
-		return `${this.PATH.DEST_DIR}${this.currentBrowser}/${fileName}`;
+		return `${this.PATH.DEST_DIR}${this.browser}/${fileName}`;
 	},
 	start: function() {
 		// console.time('\tProcessing Time');
@@ -272,36 +275,59 @@ const CAPIUM = {
 	}
 };
 
+
+
 const isMocha = process.argv[1].match(/mocha$/);
 if(isMocha) {
 
-	describe('get screenshots', function () {
-		this.timeout(60/*m*/*60/*s*/*1000/*ms*/);
+	browsers.forEach(function (browser) {
 
-		before(function () {
-			return CAPIUM.init();
-		});
+		let capium = new Capium(browser);
 
-		after(function () {
-			return CAPIUM.end();
-		});
+		describe('get screenshots', function () {
+			this.timeout(60/*m*/*60/*s*/*1000/*ms*/);
 
-		captureList.forEach(function (url) {
-			it(url, function () {
-				return CAPIUM.executeCapture(url);
+			//Before
+			before(function () {
+				return capium.init();
+			});
+
+			//After
+			after(function () {
+				return capium.end();
+			});
+
+			//Main
+			captureList.forEach(function (url) {
+				it(url, function () {
+					return capium.executeCapture(url);
+				});
 			});
 		});
 	});
 
 } else {
 
-	let promises = [];
-	CAPIUM.init();
-	captureList.forEach(function (url) {
-		let promise = CAPIUM.executeCapture(url).then(function () {
-			console.log(url);
+	browsers.forEach(function (browser) {
+
+		let capium = new Capium(browser);
+		let promises = [];
+
+		//Before
+		capium.init().then(function () {
+
+			//Main
+			captureList.forEach(function (url) {
+				let promise = capium.executeCapture(url).then(function () {
+					console.log(url);
+				});
+				promises.push(promise);
+			});
+
+			//After
+			Promise.all(promises).then(capium.end.bind(Capium));
 		});
-		promises.push(promise);
+
+
 	});
-	Promise.all(promises).then(CAPIUM.end.bind(CAPIUM));
 }

@@ -12,12 +12,15 @@ const PATH = {
 	TEMP_HCOMB_FILENAME: 'temp_hcomb_v{v}.png'
 };
 
-const Capture = function(driver) {
-	this.driver = driver;
+const Capture = function(Capium) {
+	this.driver = Capium.driver;
 	this.imagePathList = [];
+	this.func2str = Capium.func2str;
+	this.executeScript = Capium.executeScript;
 };
 
 Capture.prototype = {
+
 	saveScreenShot: function(fileName) {
 		return this.driver.takeScreenshot()
 			.then(function(photoData) {
@@ -30,11 +33,37 @@ Capture.prototype = {
 			}.bind(this));
 	},
 	saveFullScreenShot: function(fileName) {
-		return this.driver.executeScript(
-				'document.querySelector("body").style.overflow = "hidden";' +
-				// 'document.querySelector(".l-header-wrapper-nonav").style.position = "absolute";' +
-				'return window.devicePixelRatio;'
-			)
+		return this.executeScript(function () {
+
+				document.querySelector("body").style.overflow = "hidden";
+
+				var allElements = document.querySelectorAll("*");
+				var style = document.createElement('style');
+				var head = document.querySelector('head');
+				head.appendChild(style);
+				var sheet = style.sheet;
+
+				for(var i = 0, len = allElements.length; i < len; i++) {
+					var element = allElements[i];
+					var position = getComputedStyle(element).position;
+					if(position === 'fixed') {
+						element.style.setProperty('position', 'absolute', 'important');
+					}
+					var positionBefore = getComputedStyle(element, '::before').position;
+					var positionAfter = getComputedStyle(element, '::after').position;
+					var className = element.className ? '.' + Array.prototype.join.call(element.classList, '.') : '';
+					var tagName = element.tagName.toLowerCase();
+					if(positionBefore === 'fixed') {
+						sheet.insertRule(tagName + element.id + className + '::before {position:absolute !important;}', sheet.cssRules.length -1);
+					}
+					if(positionAfter === 'fixed') {
+						sheet.insertRule(tagName + element.id + className + '::after {position:absolute !important;}', sheet.cssRules.length -1);
+					}
+				}
+
+				return window.devicePixelRatio;
+
+			})
 			.then(function (devicePixelRatio) {
 				this.devicePixelRatio = +devicePixelRatio;
 			}.bind(this))
@@ -236,7 +265,6 @@ Capture.prototype = {
 
 		return new Promise(function(resolve, reject) {
 			try {
-				console.log(width, height, x, y);
 				gm(fileName)
 					.crop(width, height, x, y)
 					.write(fileName, function() {
