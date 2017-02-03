@@ -12,7 +12,7 @@ const browsers = options.browser || ['chrome/windows'];
 const Capium = function (browser, os) {
 	this.browser = browser;
 	this.os = os;
-	this.isMobile = this.os === 'android' || this.os === 'iphone';
+	this.isMobile = this.os === 'android' || this.os === 'ios';
 };
 const Capture = require('./scripts/capture.js');
 
@@ -148,25 +148,21 @@ Capium.prototype = {
 	},
 
 	initialConfig: function() {
+		let timeouts = this.driver.manage().timeouts();
 		return Promise.resolve()
-			.then(function () {
-				return this.driver.manage().timeouts().implicitlyWait(60/*m*/*60/*s*/*1000/*ms*/);
-			}.bind(this))
-			.then(function () {
-				return this.driver.manage().timeouts().setScriptTimeout(60/*m*/*60/*s*/*1000/*ms*/);
-			}.bind(this))
-			.then(function () {
-				return this.driver.manage().timeouts().pageLoadTimeout(60/*m*/*60/*s*/*1000/*ms*/);
-			}.bind(this))
+			.then(timeouts.implicitlyWait.bind(timeouts, 60/*m*/*60/*s*/*1000/*ms*/))
+			.then(timeouts.setScriptTimeout.bind(timeouts, 60/*m*/*60/*s*/*1000/*ms*/))
+			.then(timeouts.pageLoadTimeout.bind(timeouts, 60/*m*/*60/*s*/*1000/*ms*/))
 			.then(function () {
 				if(!this.isMobile) {
 					return this.driver.manage().window().setSize(+options.width || 1200, +options.height || 800);
 				}
 			}.bind(this))
 			.then(function () {
-				return this.driver.getSession().then(function (sessionid){
-					this.driver.sessionID = sessionid.id_;
-				}.bind(this));
+				return this.driver.getSession()
+					.then(function (sessionid){
+						this.driver.sessionID = sessionid.id_;
+					}.bind(this));
 			}.bind(this));
 
 	},
