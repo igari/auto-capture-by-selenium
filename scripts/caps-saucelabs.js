@@ -69,15 +69,7 @@ const capsSauceLabs = function (options) {
 			},
 			android: {
 
-				androidSimulator: {
-					"appiumVersion": "1.5.3",
-					"deviceName": "Android Emulator",
-					"deviceOrientation": "portrait",
-					"platformVersion": "5.1",
-					"platformName": "Android",
-					"browserName": "Browser"
-				},
-				android: {
+				chrome: {
 					"appiumVersion": "1.5.3",
 					"deviceName": "Samsung Galaxy S7 Device",
 					"deviceOrientation": "portrait",
@@ -86,23 +78,37 @@ const capsSauceLabs = function (options) {
 					"browserName": "chrome"
 				}
 			},
+			android_emulator: {
+
+				chrome: {
+					"appiumVersion": "1.5.3",
+					"deviceName": "Android Emulator",
+					"deviceOrientation": "portrait",
+					"platformVersion": "5.1",
+					"platformName": "Android",
+					"browserName": "Browser"
+				}
+			},
 			ios: {
 
-				iphoneSimulator: {
-					"appiumVersion": "1.6.3",
-					"deviceName": "iPhone Simulator",
-					"deviceOrientation": "portrait",
-					"platformVersion": "10.0",
-					"platformName": "iOS",
-					"browserName": "Safari"
-				},
-				iphone: {
+				safari: {
 					"appiumVersion": "1.5.3",
 					"deviceName": "iPhone 6s Device",
 					"deviceOrientation": "portrait",
 					"platformVersion": "9.3",
 					"platformName": "iOS",
 					"browserName": "Safari",
+				}
+			},
+			ios_emulator: {
+
+				safari: {
+					"appiumVersion": "1.6.3",
+					"deviceName": "iPhone Simulator",
+					"deviceOrientation": "portrait",
+					"platformVersion": "10.0",
+					"platformName": "iOS",
+					"browserName": "Safari"
 				}
 			}
 		}
