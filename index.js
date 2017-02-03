@@ -13,7 +13,7 @@ const browsers = options.browser || ['chrome/windows'];
 const Capium = function (browser, os) {
 	this.browser = browser;
 	this.os = os;
-	this.isMobile = this.os === 'android' || this.os === 'ios';
+	this.isMobile = /android|android_emulator|ios|ios_emulator/.test(this.os);
 };
 
 Capium.prototype = {
@@ -300,7 +300,7 @@ if(isMocha) {
 
 		let capium = new Capium(browser, os);
 
-		describe('get screenshots / ' + browser, function () {
+		describe('get screenshots / ' + browser + ' / ' + os, function () {
 			this.timeout(60/*m*/*60/*s*/*1000/*ms*/);
 
 			//Before
