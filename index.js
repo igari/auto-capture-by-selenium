@@ -1,11 +1,12 @@
 "use strict";
 
-const options = require('./scripts/options.js');
 const assert = require("assert");
 const webdriver = require('selenium-webdriver');
 const By = webdriver.By;
 const until = webdriver.until;
+const Capture = require('./scripts/capture.js');
 const SauceLabs = require("saucelabs");
+const options = require('./scripts/options.js');
 const urlListPath = options.source || './capture-list.json';
 const captureList = require(urlListPath);
 const browsers = options.browser || ['chrome/windows'];
@@ -14,7 +15,6 @@ const Capium = function (browser, os) {
 	this.os = os;
 	this.isMobile = this.os === 'android' || this.os === 'ios';
 };
-const Capture = require('./scripts/capture.js');
 
 Capium.prototype = {
 	init: function() {
@@ -159,10 +159,9 @@ Capium.prototype = {
 				}
 			}.bind(this))
 			.then(function () {
-				return this.driver.getSession()
-					.then(function (sessionid){
-						this.driver.sessionID = sessionid.id_;
-					}.bind(this));
+				return this.driver.getSession().then(function (sessionid){
+					this.driver.sessionID = sessionid.id_;
+				}.bind(this));
 			}.bind(this));
 
 	},
