@@ -25,10 +25,17 @@ argv.option({
 });
 argv.option({
 	name: 'reporter-options',
-	short: 'o',
+	short: '',
 	type: 'string',
 	description: 'mocha + mochawesomeのオプション用のパラメータ',
 	example: `npm run ss -- --reporter-options reportDir=customReportDir,reportFilename=customReportFilename`
+});
+argv.option({
+	name: 'os',
+	short: 'o',
+	type: 'string',
+	description: 'OS指定用のパラメータ（初期値：windows）',
+	example: `npm run ss -- --os=mac`
 });
 argv.option({
 	name: 'source',
@@ -40,20 +47,20 @@ argv.option({
 argv.option({
 	name: 'browser',
 	short: 'b',
-	type: 'list,string',
-	description: '起動するブラウザを選択します。選択肢は[chrome, firefox, ie]のいずれかです。',
+	type: 'csv,string',
+	description: '起動するブラウザを選択します。選択肢は[chrome, firefox, ie11, edge, safari]のいずれかです。',
 	example: `'npm run ss -- --browser=chrome'`
 });
 argv.option({
 	name: 'sauceLabsId',
-	short: 'u',
+	short: '',
 	type: 'string',
 	description: 'SauceLabsを利用する場合にID（ユーザー名）を指定します。',
 	example: `'npm run ss -- --sauceLabsId=xxxxxx --sauceLabsPass=xxxxxx'`
 });
 argv.option({
 	name: 'sauceLabsPass',
-	short: 'k',
+	short: '',
 	type: 'string',
 	description: 'SauceLabsを利用する場合にパスワードを指定します。',
 	example: `'npm run ss -- --sauceLabsId=xxxxxx --sauceLabsPass=xxxxxx'`

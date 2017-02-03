@@ -8,9 +8,11 @@ const until = webdriver.until;
 const SauceLabs = require("saucelabs");
 const urlListPath = options.source || './capture-list.json';
 const captureList = require(urlListPath);
-const browsers = options.browser || ['firefoxWin'];
-const Capium = function (browser) {
+const browsers = options.browser || ['chrome/windows'];
+const Capium = function (browser, os) {
 	this.browser = browser;
+	this.os = os;
+	this.isMobile = this.os === 'android' || this.os === 'iphone';
 };
 const Capture = require('./scripts/capture.js');
 
@@ -61,6 +63,8 @@ Capium.prototype = {
 		this.firefoxProfile = null;
 
 		this.testName = "Get Screenshots";
+		this.projectName = "Test Project";
+		this.buildVersion = 'version1.0.0';
 
 		this.PATH = {
 			DEST_DIR: './output/'
@@ -75,15 +79,14 @@ Capium.prototype = {
 		this.commonCap = {
 			"unexpectedAlertBehaviour": "ignore",
 			"locationContextEnabled": false,
-			"webStorageEnabled": true,
-			// "seleniumVersion": "3.0.0",
+			"webStorageEnabled": true
 		};
 
 		if(this.isBrowserStack) {
 
 			let capsBrowserStack = require('./scripts/caps-browserstack.js').bind(this);
 			let capsBrowserStackCommon = capsBrowserStack(options).common;
-			let capsBrowserStackBrowsers = capsBrowserStack(options).browsers;
+			let capsBrowserStackBrowsers = capsBrowserStack(options).browsers[this.os];
 
 			Object.assign(this.commonCap, capsBrowserStackCommon);
 
@@ -93,7 +96,7 @@ Capium.prototype = {
 
 			let capsSauceLabs = require('./scripts/caps-saucelabs.js').bind(this);
 			let capsSauceLabsCommon = capsSauceLabs(options).common;
-			let capsSauceLabsBrowsers = capsSauceLabs(options).browsers;
+			let capsSauceLabsBrowsers = capsSauceLabs(options).browsers[this.os];
 
 			Object.assign(this.commonCap, capsSauceLabsCommon);
 
@@ -105,8 +108,8 @@ Capium.prototype = {
 
 		} else {
 			const os = /^win/.test(process.platform) ? 'win' : 'mac';
-			const capsMac = require(`./scripts/caps-${os}.js`).bind(this);
-			this.browserCaps = capsMac(options).browsers;
+			const capsLocal = require(`./scripts/caps-${os}.js`).bind(this);
+			this.browserCaps = capsLocal(options).browsers;
 		}
 
 		for(let browser in this.browserCaps) {
@@ -122,7 +125,7 @@ Capium.prototype = {
 			assert(false, 'Your specified browser could not found. Please specify from the following list.\n\n' + Object.keys(this.browserCaps).join('\n'));
 		}
 
-		this.browserCap = this.browserCaps[this.browser] || this.browserCaps['firefoxWin'];
+		this.browserCap = this.browserCaps[this.browser] || this.browserCaps['chrome'];
 		this.browserName = this.browserCap.browserName;
 
 		if(this.isSauceLabs) {
@@ -145,7 +148,10 @@ Capium.prototype = {
 	},
 
 	initialConfig: function() {
-		return this.driver.manage().timeouts().implicitlyWait(60/*m*/*60/*s*/*1000/*ms*/)
+		return Promise.resolve()
+			.then(function () {
+				return this.driver.manage().timeouts().implicitlyWait(60/*m*/*60/*s*/*1000/*ms*/);
+			}.bind(this))
 			.then(function () {
 				return this.driver.manage().timeouts().setScriptTimeout(60/*m*/*60/*s*/*1000/*ms*/);
 			}.bind(this))
@@ -153,7 +159,9 @@ Capium.prototype = {
 				return this.driver.manage().timeouts().pageLoadTimeout(60/*m*/*60/*s*/*1000/*ms*/);
 			}.bind(this))
 			.then(function () {
-				return this.driver.manage().window().setSize(+options.width || 1200, +options.height || 800);
+				if(!this.isMobile) {
+					return this.driver.manage().window().setSize(+options.width || 1200, +options.height || 800);
+				}
 			}.bind(this))
 			.then(function () {
 				return this.driver.getSession().then(function (sessionid){
@@ -191,10 +199,18 @@ Capium.prototype = {
 				return this.executeScript(this.unbindBeforeUnload);
 			}.bind(this))
 			.then(function () {
-				if (/chromeMac|chromeWin|iphone|android/.test(this.browser)) {
-					return capture.saveFullScreenShot(captureUrl);
+				if(this.isMobile) {
+					if (/chrome|safari/.test(this.browser)) {
+						return capture.saveFullScreenShot(captureUrl);
+					} else {
+						return capture.saveScreenShot(captureUrl);
+					}
 				} else {
-					return capture.saveScreenShot(captureUrl);
+					if (/chrome|firefox/.test(this.browser)) {
+						return capture.saveFullScreenShot(captureUrl);
+					} else {
+						return capture.saveScreenShot(captureUrl);
+					}
 				}
 			}.bind(this))
 			.catch(function (error) {
@@ -282,9 +298,14 @@ if(isMocha) {
 
 	browsers.forEach(function (browser) {
 
-		let capium = new Capium(browser);
+		let osAndBrowser = browser.split('/');
+		let isOSIncluded = osAndBrowser.length > 0;
+		let os = isOSIncluded ? osAndBrowser[1] : 'windows';
+		browser = isOSIncluded ? osAndBrowser[0] : browser;
 
-		describe('get screenshots', function () {
+		let capium = new Capium(browser, os);
+
+		describe('get screenshots / ' + browser, function () {
 			this.timeout(60/*m*/*60/*s*/*1000/*ms*/);
 
 			//Before
@@ -325,7 +346,7 @@ if(isMocha) {
 			});
 
 			//After
-			Promise.all(promises).then(capium.end.bind(Capium));
+			return Promise.all(promises).then(capium.end.bind(Capium));
 		});
 
 
