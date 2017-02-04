@@ -11,10 +11,10 @@ const capsSauceLabs = function (options) {
 			"screenResolution" : options.resolution || "1024x768",
 			"timeZone": "Tokyo",
 			"videoUploadOnPass": false,
-			"recordVideo": false,
-			"recordScreenshots": false,
+			"recordVideo": true,
+			"recordScreenshots": true,
 			"recordLogs": true,
-			"captureHtml": false,
+			"captureHtml": true,
 			"webdriverRemoteQuietExceptions": false
 		},
 
