@@ -4,7 +4,7 @@ const fs = require('fs');
 const gm = require('gm');
 const del = require('del');
 
-const Util = require('./util');
+const util = require('./util.js');
 
 const PATH = {
 	TEMP_DIR: './.temp/',
@@ -24,15 +24,16 @@ Capture.prototype = {
 	saveScreenShot: function(fileName) {
 		return this.driver.takeScreenshot()
 			.then(function(photoData) {
-				Util.makeDir(fileName).then(function () {
+				util.makeDir(fileName).then(function () {
 					fs.writeFileSync(fileName, photoData, 'base64');
 					this.imagePathList.push(fileName);
-					// console.log('\tSAVE: ' + fileName);
+					console.log('\tSAVE: ' + fileName);
 					return fileName;
 				}.bind(this));
 			}.bind(this));
 	},
 	saveFullScreenShot: function(fileName) {
+
 		return this.executeScript(function () {
 
 				document.querySelector("body").style.overflow = "hidden";
@@ -72,13 +73,7 @@ Capture.prototype = {
 				return this.captureFullPage(fileName, data);
 			}.bind(this))
 			.then(this.combineTempImages.bind(this, fileName))
-			// .then(function () {
-			// 	console.log(this.scrollWidth,this.scrollHeight)
-			// 	return new Promise(function (resolve) {
-			// 		gm(fileName).scale(1200, 1200).write(fileName, resolve);
-			// 	});
-			// })
-			// .then(this.deleteTempImages.bind(this))
+			.then(this.deleteTempImages.bind(this))
 			.then(function() { return fileName; });
 	},
 	captureFullPage: function() {
@@ -238,7 +233,7 @@ Capture.prototype = {
 			return Promise.resolve();
 		}
 
-		return Util.makeDir(fileName)
+		return util.makeDir(fileName)
 			.then(function() {
 				return this.writeCombineImage(fileName, combineImage);
 			}.bind(this))

@@ -1,16 +1,15 @@
 "use strict";
 
-const capsBrowserStack = function (options) {
+const capsBrowserStack = function () {
 	return {
 		common: {
-			'name': this.testName,
-			'build' : this.buildVersion,
-			'project' : this.projectName,
+			'name': "Get Screenshots",
+			'build' : "version1.0.0",
+			'project' : "Test Project",
 			'acceptSslCerts' : 'true',
-			"resolution" : options.resolution || "1024x768",
-			'browserstack.user': options.browserStackId,
-			'browserstack.key' : options.browserStackPass,
-			'browserstack.local' : options.browserStackLocal || 'false',
+			"resolution" : this.cap.resolution || "1024x768",
+
+			'browserstack.local' : this.cap['browserstack.local'] || 'false',
 			'browserstack.debug' : 'true',
 			'browserstack.video' : 'true',
 			'browserstack.timezone': 'Asia/Tokyo',
@@ -26,7 +25,7 @@ const capsBrowserStack = function (options) {
 					'browser_version' : '55.0',
 					'os' : 'Windows',
 					'os_version' : '10',
-					"chromeOptions": this.chromeOptions,
+					"chromeOptions": this.cap.chromeOptions,
 				},
 				firefox: {
 					"browserName": "firefox",
@@ -56,7 +55,7 @@ const capsBrowserStack = function (options) {
 					'browser_version' : '55.0',
 					'os' : 'OS X',
 					'os_version' : 'Sierra',
-					"chromeOptions": this.chromeOptions,
+					"chromeOptions": this.cap.chromeOptions,
 				},
 				firefox: {
 					"browserName": "firefox",

@@ -2,9 +2,10 @@
   "name": "Capium",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./lib/capium.js",
+  "bin": "./bin/capium.js",
   "scripts": {
-    "ss": "mocha index.js",
+    "ss": "node ./bin/capium.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

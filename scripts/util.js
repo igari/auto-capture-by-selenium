@@ -3,7 +3,7 @@
 const mkdirp = require('mkdirp');
 const path = require('path');
 
-var Util = {
+var util = {
 	makeDir: function(fileName) {
 		return new Promise(function(resolve, reject) {
 			mkdirp(path.dirname(fileName), function(err) {
@@ -14,4 +14,4 @@ var Util = {
 	}
 };
 
-module.exports = Util;
+module.exports = util;

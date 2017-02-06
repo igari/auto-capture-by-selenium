@@ -1,14 +1,14 @@
 "use strict";
 
-const capsSauceLabs = function (options) {
+const capsSauceLabs = function () {
 
 	return {
 
 		common: {
-			"name": this.testName,
-			'username': options.sauceLabsId,
-			'accessKey': options.sauceLabsPass,
-			"screenResolution" : options.resolution || "1024x768",
+			"name": "Get Screenshot",
+			'username': '',//Add username for Sauce Labs
+			'accessKey': '',//Add accessKey for Sauce Labs
+			"screenResolution" : this.cap.resolution || "1024x768",
 			"timeZone": "Tokyo",
 			"videoUploadOnPass": false,
 			"recordVideo": true,
@@ -26,7 +26,7 @@ const capsSauceLabs = function (options) {
 					"browserName": "chrome",
 					"version": "latest",
 					"platform": "Windows 10",
-					"chromeOptions": this.chromeOptions,
+					"chromeOptions": this.cap.chromeOptions,
 				},
 				firefox: {
 					"browserName": "firefox",
@@ -51,7 +51,7 @@ const capsSauceLabs = function (options) {
 					"browserName": "chrome",
 					"version": "latest",
 					"platform": "OS X 10.9",
-					"chromeOptions": this.chromeOptions,
+					"chromeOptions": this.cap.chromeOptions,
 				},
 				firefox: {
 					"browserName": "firefox",
