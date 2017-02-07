@@ -30,11 +30,32 @@ brew install graphicsmagick
 ```
 
 ### install each driver of browsers
+
+If you have remote testing tools(e.g. `BrowserStack` or `SauceLabs`), you don't need to do these things.
+Then I recommend for using remote testing tools because it's soooooo easy.
+
+#### Chromedriver for Google Chrome
+Already been downloaded and set the PATH.
+So there is nothing to do.
+
+#### Geckodriver for Firefox
+1. Get driver from https://github.com/mozilla/geckodriver/releases
+2. Put the binary file into where you'd like to put.(e.g. `/usr/local/bin/`)
+3. Add `PATH` setting your shell config file (`.bashrc` or `.zshrc`).
+
+If you put into `/usr/local/bin/`
+```sh
+export PATH=$PATH:/usr/local/bin/geckodriver
+```
+
+#### Safaridriver
+Already been exist from safari10.
+So there is nothing to do.
+
+
+#### Others
 1. Get driver from http://www.seleniumhq.org/download/
 2. Set Environment PATH to the driver binary
-
-Maybe, Chromedriver has already been downloaded and set the PATH.
-If it does'nt work, download and set.
 
 ## Try out (on your local)
 
