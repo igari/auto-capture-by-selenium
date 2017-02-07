@@ -14,8 +14,8 @@ function Browser(pages, cap, options) {
 
 	this.pages = pages;
 	this.cap = cap;
-	this.cap.os = this.cap.os || /^win/.test(process.platform) ? 'windows' : 'mac';
-	this.isMobile = /android|android_emulator|ios|ios_emulator/.test(this.cap.os);
+	this.options = options;
+
 	this.setPathOfChromeDriver(options);
 }
 
@@ -102,13 +102,15 @@ Browser.prototype = {
 			this.platform = 'local'
 		}
 
+		this.isMobile = /android|android_emulator|ios|ios_emulator/.test(this.cap.os);
+
 		switch(this.platform) {
 			case 'browserstack':
 				let capsBrowserStack = require('./caps-browserstack.js').bind(this);
 				let capsBrowserStackCommon = capsBrowserStack().common;
 				let capsBrowserStackBrowser = capsBrowserStack().browsers[this.cap.os][this.cap.browserName];
 				let browserStackServer = 'http://hub-cloud.browserstack.com/wd/hub';
-				this.browserCap = Object.assign({}, this.commonCap, capsBrowserStackCommon, capsBrowserStackBrowser, this.cap);
+				this.browserCap = Object.assign({}, this.commonCap, capsBrowserStackCommon, this.cap, capsBrowserStackBrowser);
 				this.remoteTesingServer = browserStackServer;
 				break;
 			case 'saucelabs':
@@ -116,28 +118,30 @@ Browser.prototype = {
 				let capsSauceLabsCommon = capsSauceLabs().common;
 				let capsSauceLabsBrowser = capsSauceLabs().browsers[this.cap.os][this.cap.browserName];
 				let sauceLabsServer = "http://" + this.cap.username + ":" + this.cap.accessKey + "@ondemand.saucelabs.com:80/wd/hub";
-				this.browserCap = Object.assign({}, this.commonCap, capsSauceLabsCommon, capsSauceLabsBrowser, this.cap);
+				this.browserCap = Object.assign({}, this.commonCap, capsSauceLabsCommon, this.cap, capsSauceLabsBrowser);
 				this.remoteTesingServer = sauceLabsServer;
 				break;
 			default:
+				this.cap.os = this.cap.os || /^win/.test(process.platform) ? 'windows' : 'mac';
 				const capsLocal = require('./caps-local.js').bind(this);
 				const capsLocalBrowser = capsLocal().browsers[this.cap.os][this.cap.browserName];
-				this.browserCap = Object.assign({}, this.commonCap, capsLocalBrowser, this.cap);
+				this.browserCap = Object.assign({}, this.commonCap, this.cap, capsLocalBrowser);
 				break;
 		}
 	},
 	buildBrowser: function () {
 
 		if(this.remoteTesingServer) {
-			return this.driver = new webdriver.Builder()
+			this.driver = new webdriver.Builder()
 				.withCapabilities(this.browserCap)
 				.usingServer(this.remoteTesingServer)
 				.build();
 		} else {
-			return this.driver = new webdriver.Builder()
+			this.driver = new webdriver.Builder()
 				.withCapabilities(this.browserCap)
 				.build();
 		}
+		return typeof this.driver.then === 'function' ? this.driver : Promise.resolve();
 	},
 
 	initialConfig: function() {
