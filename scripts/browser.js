@@ -2,20 +2,39 @@
 
 const assert = require("assert");
 const webdriver = require("selenium-webdriver");
+const chrome = require("selenium-webdriver/chrome");
 const By = webdriver.By;
 const until = webdriver.until;
 const Capture = require("./capture.js");
 const SauceLabs = require("saucelabs");
+const path = require("path");
+const fs = require("fs");
 
-function Browser(pages, cap) {
+function Browser(pages, cap, options) {
 
 	this.pages = pages;
 	this.cap = cap;
+	this.cap.os = this.cap.os || /^win/.test(process.platform) ? 'windows' : 'mac';
 	this.isMobile = /android|android_emulator|ios|ios_emulator/.test(this.cap.os);
+	this.setPathOfChromeDriver(options);
 }
 
 
 Browser.prototype = {
+
+	setPathOfChromeDriver: function (options) {
+		let pathOfSeleniumStandalone = path.join(__dirname, '../../../', `/node_modules/selenium-standalone/`);
+		return new Promise(function (resolve) {
+			if(!fs.accessSync(pathOfSeleniumStandalone)) {
+				pathOfSeleniumStandalone = path.join(__dirname, '../', `/node_modules/selenium-standalone/`)
+			}
+			resolve(pathOfSeleniumStandalone);
+		})
+		.then(function (_pathOfSeleniumStandalone) {
+			const chromeDriverPath = _pathOfSeleniumStandalone + `.selenium/chromedriver/${options.drivers.chrome.version}-${options.drivers.chrome.arch}-chromedriver`;
+			chrome.setDefaultService(new chrome.ServiceBuilder(chromeDriverPath).build());
+		});
+	},
 	
 	run: function () {
 
@@ -99,9 +118,8 @@ Browser.prototype = {
 				this.remoteTesingServer = sauceLabsServer;
 				break;
 			default:
-				const os = /^win/.test(process.platform) ? 'windows' : 'mac';
 				const capsLocal = require('./caps-local.js').bind(this);
-				const capsLocalBrowser = capsLocal().browsers[os][this.cap.browserName];
+				const capsLocalBrowser = capsLocal().browsers[this.cap.os][this.cap.browserName];
 				this.browserCap = Object.assign({}, this.commonCap, this.cap, capsLocalBrowser);
 				break;
 		}
