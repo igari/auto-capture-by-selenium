@@ -233,6 +233,9 @@ Capture.prototype = {
 			.then(function () {
 				return this.writeCombineImage(fileName, combineImage);
 			}.bind(this))
+			.then(function () {
+				console.log('\tCOMBINED: ' + fileName);
+			}.bind(this))
 			.catch(function(err) {
 				if (err) throw err;
 			}.bind(this));
