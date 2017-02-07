@@ -1,14 +1,14 @@
 {
-  "name": "Capium",
+  "name": "capium",
   "version": "0.6.0",
-  "description": "",
+  "description": "A tool which is able to get screenshot of web page by specified url.It supports local testing and remote testing with BrowserStack or SauceLabs.",
   "main": "./lib/capium.js",
   "bin": "./bin/capium.js",
   "scripts": {
     "ss": "node ./bin/capium.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Igari Takeharu",
   "license": "ISC",
   "devDependencies": {
     "argv": "^0.0.2",
