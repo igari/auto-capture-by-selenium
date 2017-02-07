@@ -108,7 +108,7 @@ Browser.prototype = {
 				let capsBrowserStackCommon = capsBrowserStack().common;
 				let capsBrowserStackBrowser = capsBrowserStack().browsers[this.cap.os][this.cap.browserName];
 				let browserStackServer = 'http://hub-cloud.browserstack.com/wd/hub';
-				this.browserCap = Object.assign({}, this.commonCap, capsBrowserStackCommon, this.cap, capsBrowserStackBrowser);
+				this.browserCap = Object.assign({}, this.commonCap, capsBrowserStackCommon, capsBrowserStackBrowser, this.cap);
 				this.remoteTesingServer = browserStackServer;
 				break;
 			case 'saucelabs':
@@ -116,13 +116,13 @@ Browser.prototype = {
 				let capsSauceLabsCommon = capsSauceLabs().common;
 				let capsSauceLabsBrowser = capsSauceLabs().browsers[this.cap.os][this.cap.browserName];
 				let sauceLabsServer = "http://" + this.cap.username + ":" + this.cap.accessKey + "@ondemand.saucelabs.com:80/wd/hub";
-				this.browserCap = Object.assign({}, this.commonCap, capsSauceLabsCommon, this.cap, capsSauceLabsBrowser);
+				this.browserCap = Object.assign({}, this.commonCap, capsSauceLabsCommon, capsSauceLabsBrowser, this.cap);
 				this.remoteTesingServer = sauceLabsServer;
 				break;
 			default:
 				const capsLocal = require('./caps-local.js').bind(this);
 				const capsLocalBrowser = capsLocal().browsers[this.cap.os][this.cap.browserName];
-				this.browserCap = Object.assign({}, this.commonCap, this.cap, capsLocalBrowser);
+				this.browserCap = Object.assign({}, this.commonCap, capsLocalBrowser, this.cap);
 				break;
 		}
 	},

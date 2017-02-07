@@ -98,15 +98,25 @@ Edit `./settings/caps.js`
 module.exports = [
   {
     "browserName": "safari",
-    "os": "mac",
+    "os": "mac",//Capium Original Key
   },
   {
     "browserName": "firefox",
-    "os": "mac"
+    "os": "mac"//Capium Original Key
   }
 ];
 ```
 
+See more key of [os and browserName](https://github.com/igari/capium/tree/modulize#os-and-browser)
+
+See [all capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities)
+
+*Capabilities you specified takes precedence over below Default Capabilities*
+
+##### Default Capabilities in Capium
+- [Default Capabilities for Local](https://github.com/igari/capium/blob/modulize/scripts/caps-local.js)
+- [Default Capabilities for BrowserStack](https://github.com/igari/capium/blob/modulize/scripts/caps-browserstack.js)
+- [Default Capabilities for SauceLabs](https://github.com/igari/capium/blob/modulize/scripts/caps-saucelabs.js)
 
 ## TIPS
 
@@ -177,6 +187,8 @@ module.exports = [
 ];
 ```
 
+See [all capabilities of BrowserStack](https://www.browserstack.com/automate/capabilities)
+
 #### Local tesing with BrowserStack (if you want to test on local server e.g. http://localhost)
 ```bash
 ./BrowserStackLocal --key ${accesskey}
@@ -196,6 +208,7 @@ module.exports = [
   }
 ];
 ```
+See [all capabilities of SauceLabs](https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options)
 
 #### Local testing with Sauce Connect of Sauce Labs (if you want to test on local server e.g. http://localhost)
 ```bash
@@ -234,10 +247,11 @@ ex)
 | Above the Fold*2 | Full Page | Full Page | Full Page | Full Page*1  | Above the Fold*2 | Above the Fold*2 |
 
 *1) In case of Safari10~ & Selenium3~. Otherwise Above the fold
+
 *2) --fullscreen options make it available for fullscreen screenshot as experimental
 
 
-### os and browser
+### `os` and `browserName`
 
 |              | chrome | firefox | safari | edge | ie11 |
 | ------------ | ------ | ------ | ------ | ------ | ------ |
