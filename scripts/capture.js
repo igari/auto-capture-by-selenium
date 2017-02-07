@@ -233,9 +233,6 @@ Capture.prototype = {
 			.then(function () {
 				return this.writeCombineImage(fileName, combineImage);
 			}.bind(this))
-			.then(function () {
-				console.log('\tCOMBINED: ' + fileName);
-			}.bind(this))
 			.catch(function(err) {
 				if (err) throw err;
 			}.bind(this));
@@ -243,7 +240,10 @@ Capture.prototype = {
 	writeCombineImage: function(fileName, combineImage) {
 		return new Promise(function(resolve, reject) {
 			try {
-				combineImage.write(fileName, resolve);
+				combineImage.write(fileName, function () {
+					console.log('\tCOMBINED: ' + fileName);
+					resolve();
+				});
 			} catch(e) {
 				reject(e)
 			}
