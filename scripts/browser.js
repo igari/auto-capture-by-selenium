@@ -24,6 +24,10 @@ Browser.prototype = {
 
 	setPathOfChromeDriver: function (options) {
 
+		if(this.cap.browserName !== 'chrome') {
+			return;
+		}
+
 		let pathOfSeleniumStandalone = path.join(__dirname, '../../../', `/node_modules/selenium-standalone/`);
 		if(!fs.statSync(pathOfSeleniumStandalone).isDirectory()) {
 			//Override
