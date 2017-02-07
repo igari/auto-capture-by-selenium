@@ -23,17 +23,15 @@ function Browser(pages, cap, options) {
 Browser.prototype = {
 
 	setPathOfChromeDriver: function (options) {
+
 		let pathOfSeleniumStandalone = path.join(__dirname, '../../../', `/node_modules/selenium-standalone/`);
-		return new Promise(function (resolve) {
-			if(!fs.accessSync(pathOfSeleniumStandalone)) {
-				pathOfSeleniumStandalone = path.join(__dirname, '../', `/node_modules/selenium-standalone/`)
-			}
-			resolve(pathOfSeleniumStandalone);
-		})
-		.then(function (_pathOfSeleniumStandalone) {
-			const chromeDriverPath = _pathOfSeleniumStandalone + `.selenium/chromedriver/${options.drivers.chrome.version}-${options.drivers.chrome.arch}-chromedriver`;
-			chrome.setDefaultService(new chrome.ServiceBuilder(chromeDriverPath).build());
-		});
+		if(!fs.statSync(pathOfSeleniumStandalone).isDirectory()) {
+			//Override
+			pathOfSeleniumStandalone = path.join(__dirname, '../', `/node_modules/selenium-standalone/`)
+		}
+
+		let chromeDriverPath = pathOfSeleniumStandalone + `.selenium/chromedriver/${options.drivers.chrome.version}-${options.drivers.chrome.arch}-chromedriver`;
+		chrome.setDefaultService(new chrome.ServiceBuilder(chromeDriverPath).build());
 	},
 	
 	run: function () {
