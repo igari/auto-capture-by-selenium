@@ -13,8 +13,15 @@ It supports local testing and remote testing with BrowserStack or SauceLabs.
 
 ## Installation
 
-### clone this repository
-Clone where you would like to put.
+### Clone this repository
+```sh
+git clone https://github.com/igari/capium.git
+````
+
+### Install Node Package Modules
+```sh
+npm i
+````
 
 ### install `graphic magick`
 ```bash
@@ -26,11 +33,8 @@ brew install graphicsmagick
 1. Get driver from http://www.seleniumhq.org/download/
 2. Set Environment PATH to the driver binary
 
-
-#### install Node Packages
-```bash 
-npm i
-```
+Maybe, Chromedriver has already been downloaded and set the PATH.
+If it does'nt work, download and set.
 
 ## Try out (on your local)
 
@@ -240,13 +244,13 @@ ex)
 *1 Currently not supported
 
 
-## Run Programmatically
+# Run Programmatically
 
 ```sh
 npm i capium --save-dev
 ```
 
-### Basic
+## Basic
 
 ```js
 const capium = require('capium');
@@ -266,7 +270,7 @@ capium({
 
 ```
 
-### Advanced
+## Advanced
 
 Remote Testing and Execution of JavaScript
 
@@ -312,7 +316,7 @@ capium({
 
 ```
 
-## Remote testing tools are
+## Remote testing tools used by Capium.
 
 - Browser Stack
 - Sauce Labs
