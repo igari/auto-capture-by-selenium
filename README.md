@@ -253,11 +253,12 @@ ex)
 
 # Run Programmatically
 
+## Install to your project
 ```sh
 npm i capium --save-dev
 ```
 
-## Basic
+## Basic Usage
 
 ```js
 const capium = require('capium');
@@ -277,7 +278,7 @@ capium({
 
 ```
 
-## Advanced
+## Advanced Usage
 
 Remote Testing and Execution of JavaScript
 
