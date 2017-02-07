@@ -1,6 +1,6 @@
 {
   "name": "capium",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A tool which is able to get screenshot of web page by specified url.It supports local testing and remote testing with BrowserStack or SauceLabs.",
   "main": "./lib/capium.js",
   "bin": "./bin/capium.js",
@@ -18,6 +18,7 @@
     "mocha": "^3.2.0",
     "mochawesome": "^2.0.2",
     "saucelabs": "^1.3.0",
+    "selenium-standalone": "^6.0.1",
     "selenium-webdriver": "^3.0.1"
   }
 }
