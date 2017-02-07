@@ -324,7 +324,7 @@ capium({
 
 ```
 
-## Remote testing tools used by Capium.
+# Remote testing tools used by Capium.
 
 - Browser Stack
 - Sauce Labs
