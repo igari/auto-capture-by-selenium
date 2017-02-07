@@ -86,25 +86,11 @@ module.exports = [
 ];
 ```
 
-#### If you use safari, turn on `Allow Remote Automation` before running.
-
-Safari > Develop > Allow Remote Automation.
-
-### Setup about Testing Option
-Edit `./settings/option.js`
-
-```js
-module.exports = {
-
-  "mocha": false,
-  "outputPath": './output/',
-  "testName": "Get Screenshots",
-  "projectName": "Test Project",
-  "buildVersion": 'version1.0.0'
-};
-```
 
 ## TIPS
+
+### If you use safari, turn on `Allow Remote Automation` before running.
+Safari > Develop > Allow Remote Automation.
 
 ### Executing JavaScript by page which specified
 Edit `./settings/pages.js`
