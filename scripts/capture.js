@@ -24,7 +24,7 @@ Capture.prototype = {
 	saveScreenShot: function(fileName) {
 		return this.driver.takeScreenshot()
 			.then(function(photoData) {
-				util.makeDir(fileName).then(function () {
+				return util.makeDir(fileName).then(function () {
 					fs.writeFileSync(fileName, photoData, 'base64');
 					this.imagePathList.push(fileName);
 					console.log('\tSAVE: ' + fileName);
@@ -119,7 +119,7 @@ Capture.prototype = {
 									}
 									capturePage();
 								}
-							});
+							}.bind(this));
 					}.bind(this));
 			}.bind(this);
 
@@ -163,15 +163,13 @@ Capture.prototype = {
 			}.bind(this));
 	},
 	combineTempImages: function(fileName) {
-
-		this.hashPathList = this.imagePathList.reduce(function(dictionary, data, index) {
-			var hashV = parseInt(data.match(/v[0-9]+/)[0].slice(1));
-
-			if (dictionary[hashV] === undefined) {
-				dictionary[hashV] = [];
+		this.hashPathList = this.imagePathList.reduce(function(previousValue, currentValue, index) {
+			var hashV = parseInt(currentValue.match(/v[0-9]+/)[0].slice(1));
+			if (previousValue[hashV] === undefined) {
+				previousValue[hashV] = [];
 			}
-			dictionary[hashV].push(data);
-			return dictionary;
+			previousValue[hashV].push(currentValue);
+			return previousValue;
 		}, {});
 
 		return this.combineHorizontalTempImages()
@@ -188,11 +186,9 @@ Capture.prototype = {
 		return new Promise(function(resolve) {
 
 			let horizontalCombList = [];
-
 			let combineHorizontalTempImage = function(vScrollIndex) {
 
 				let hasNextData = this.hashPathList[vScrollIndex] !== undefined;
-
 				if (!hasNextData) {
 					resolve(horizontalCombList);
 					return;
@@ -234,19 +230,20 @@ Capture.prototype = {
 		}
 
 		return util.makeDir(fileName)
-			.then(function() {
+			.then(function () {
 				return this.writeCombineImage(fileName, combineImage);
+			}.bind(this))
+			.then(function () {
+				console.log('\tCOMBINED: ' + fileName);
 			}.bind(this))
 			.catch(function(err) {
 				if (err) throw err;
-			});
+			}.bind(this));
 	},
 	writeCombineImage: function(fileName, combineImage) {
 		return new Promise(function(resolve, reject) {
 			try {
-				combineImage.write(fileName, function() {
-					resolve();
-				});
+				combineImage.write(fileName, resolve);
 			} catch(e) {
 				reject(e)
 			}
@@ -263,7 +260,7 @@ Capture.prototype = {
 				gm(fileName)
 					.crop(width, height, x, y)
 					.write(fileName, function() {
-						console.log(`\tCLOPED: ${fileName}`);
+						console.log(`\tCLOPPED: ${fileName}`);
 						resolve();
 					});
 			} catch(e) {

@@ -18,28 +18,26 @@ function Browser(pages, cap) {
 Browser.prototype = {
 	
 	run: function () {
-		
-		let _this = this;
 
 		//Before
-		_this.init()
+		return this.init()
 			.then(function () {
 
 				let promises = [];
+				console.log('get screenshots / ' + this.cap.browserName + ' on ' + this.cap.os);
 
 				//Main
-				_this.pages.forEach(function (page) {
-					console.log('get screenshots / ' + _this.cap.browserName + ' on ' + _this.cap.os);
+				this.pages.forEach(function (page) {
 					console.time('\t' + page.url);
-					let promise = _this.executeCapture(page)
+					let promise = this.executeCapture(page)
 						.then(console.timeEnd.bind(null, ('\t' + page.url)));
 					promises.push(promise);
-				});
+				}.bind(this));
 
 				return Promise.all(promises);
-			})
+			}.bind(this))
 			//After
-			.then(_this.end.bind(_this));
+			.then(this.end.bind(this));
 	},
 
 	init: function() {
@@ -61,30 +59,39 @@ Browser.prototype = {
 		this.isBrowserStack = this.cap['browserstack.user'] && this.cap['browserstack.key'];
 		this.isLocal = !this.isBrowserStack && !this.isSauceLabs;
 
-		if(this.isBrowserStack) {
-
-			let capsBrowserStack = require('./caps-browserstack.js').bind(this);
-			let capsBrowserStackCommon = capsBrowserStack().common;
-			let capsBrowserStackBrowser = capsBrowserStack().browsers[this.cap.os][this.cap.browserName];
-			let browserStackServer = 'http://hub-cloud.browserstack.com/wd/hub';
-			this.browserCap = Object.assign({}, this.commonCap, capsBrowserStackCommon, this.cap, capsBrowserStackBrowser);
-			this.remoteTesingServer = browserStackServer;
-		}
 		if(this.isSauceLabs) {
-
-			let capsSauceLabs = require('./caps-saucelabs.js').bind(this);
-			let capsSauceLabsCommon = capsSauceLabs().common;
-			let capsSauceLabsBrowser = capsSauceLabs().browsers[this.cap.os][this.cap.browserName];
-			let sauceLabsServer = "http://" + this.cap.username + ":" + this.cap.accessKey + "@ondemand.saucelabs.com:80/wd/hub";
-			this.browserCap = Object.assign({}, this.commonCap, capsSauceLabsCommon, this.cap, capsSauceLabsBrowser);
-			this.remoteTesingServer = sauceLabsServer;
+			this.platform = 'saucelabs'
+		}
+		if(this.isBrowserStack) {
+			this.platform = 'browserstack'
 		}
 		if(this.isLocal) {
+			this.platform = 'local'
+		}
 
-			const os = /^win/.test(process.platform) ? 'windows' : 'mac';
-			const capsLocal = require('./caps-local.js').bind(this);
-			const capsLocalBrowser = capsLocal().browsers[os][this.cap.browserName];
-			this.browserCap = Object.assign({}, this.commonCap, this.cap, capsLocalBrowser);
+		switch(this.platform) {
+			case 'browserstack':
+				let capsBrowserStack = require('./caps-browserstack.js').bind(this);
+				let capsBrowserStackCommon = capsBrowserStack().common;
+				let capsBrowserStackBrowser = capsBrowserStack().browsers[this.cap.os][this.cap.browserName];
+				let browserStackServer = 'http://hub-cloud.browserstack.com/wd/hub';
+				this.browserCap = Object.assign({}, this.commonCap, capsBrowserStackCommon, this.cap, capsBrowserStackBrowser);
+				this.remoteTesingServer = browserStackServer;
+				break;
+			case 'saucelabs':
+				let capsSauceLabs = require('./caps-saucelabs.js').bind(this);
+				let capsSauceLabsCommon = capsSauceLabs().common;
+				let capsSauceLabsBrowser = capsSauceLabs().browsers[this.cap.os][this.cap.browserName];
+				let sauceLabsServer = "http://" + this.cap.username + ":" + this.cap.accessKey + "@ondemand.saucelabs.com:80/wd/hub";
+				this.browserCap = Object.assign({}, this.commonCap, capsSauceLabsCommon, this.cap, capsSauceLabsBrowser);
+				this.remoteTesingServer = sauceLabsServer;
+				break;
+			default:
+				const os = /^win/.test(process.platform) ? 'windows' : 'mac';
+				const capsLocal = require('./caps-local.js').bind(this);
+				const capsLocalBrowser = capsLocal().browsers[os][this.cap.browserName];
+				this.browserCap = Object.assign({}, this.commonCap, this.cap, capsLocalBrowser);
+				break;
 		}
 	},
 	buildBrowser: function () {
@@ -236,10 +243,10 @@ Browser.prototype = {
 		return url.split('://')[1].replace(/\//g, '_') + '.png';
 	},
 	getDestPath: function(fileName) {
-		return `./output/${this.cap.os}/${this.cap.browserName}/${fileName}`;
+		return `./output/${this.platform}/${this.cap.os}/${this.cap.browserName}/${fileName}`;
 	},
 	start: function() {
-		// console.time('\tProcessing Time');
+		console.time('All got screenshots with Capium');
 
 		return Promise.resolve();
 	},
@@ -259,8 +266,7 @@ Browser.prototype = {
 			}
 
 		}.bind(this));
-		// console.log('\t---- COMPLETE ----');
-		// console.timeEnd('\tProcessing Time');
+		console.timeEnd('All got screenshots with Capium');
 	}
 };
 
