@@ -1,6 +1,6 @@
 {
   "name": "Capium",
-  "version": "0.0.0",
+  "version": "0.6.0",
   "description": "",
   "main": "./lib/capium.js",
   "bin": "./bin/capium.js",

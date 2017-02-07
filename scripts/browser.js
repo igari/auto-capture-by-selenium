@@ -23,14 +23,22 @@ Browser.prototype = {
 		return this.init()
 			.then(function () {
 
+				console.log(
+					'\n' +
+					'========================================\n' +
+					this.testLabel + '\n' +
+					'========================================'
+				);
+
 				let promises = [];
-				console.log('get screenshots / ' + this.cap.browserName + ' on ' + this.cap.os);
 
 				//Main
 				this.pages.forEach(function (page) {
-					console.time('\t' + page.url);
+					console.time('\n\n end: ' + page.url);
 					let promise = this.executeCapture(page)
-						.then(console.timeEnd.bind(null, ('\t' + page.url)));
+						.then(function () {
+							console.timeEnd('\n\n end: ' + page.url);
+						});
 					promises.push(promise);
 				}.bind(this));
 
@@ -41,8 +49,12 @@ Browser.prototype = {
 	},
 
 	init: function() {
-		this.start();
 		this.setBrowserCaps();
+
+		this.testLabel = ' get screenshots / ' + this.cap.browserName + ' on ' + this.cap.os + ' with ' + this.platform;
+		console.log('\n\n');
+		console.time(this.testLabel);
+
 		return this.buildBrowser()
 			.then(this.initialConfig.bind(this));
 	},
@@ -134,6 +146,12 @@ Browser.prototype = {
 
 		return this.driver.get(page.url)
 			.then(function () {
+
+				let testLabel = ' start: ' + page.url;
+				console.log('\n\n-----------------------------------');
+				console.log(testLabel)
+				console.log('- - - - - - - - - - - - - - - - - -\n');
+
 				let hasBasicAuthInURL = page.url.match(/https?:\/\/.+:.+@.+/);
 				if (hasBasicAuthInURL && !this.isBrowserStack && /safari/.test(this.cap.browserName)) {
 					return this.driver.wait(until.elementLocated(By.id('ignoreWarning')), 10/*s*/*1000/*ms*/, 'The button could not found.')
@@ -245,11 +263,6 @@ Browser.prototype = {
 	getDestPath: function(fileName) {
 		return `./output/${this.platform}/${this.cap.os}/${this.cap.browserName}/${fileName}`;
 	},
-	start: function() {
-		console.time('All got screenshots with Capium');
-
-		return Promise.resolve();
-	},
 	end: function() {
 		return this.driver.quit().then(function () {
 			if(this.isSauceLabs) {
@@ -265,8 +278,10 @@ Browser.prototype = {
 				);
 			}
 
+			console.log('\n\n')
+			console.timeEnd(this.testLabel);
+
 		}.bind(this));
-		console.timeEnd('All got screenshots with Capium');
 	}
 };
 
