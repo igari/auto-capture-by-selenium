@@ -9,19 +9,65 @@ const Capture = require("./capture.js");
 const SauceLabs = require("saucelabs");
 const path = require("path");
 const fs = require("fs");
+const selenium = require('selenium-standalone');
+const defaultConfig = require('selenium-standalone/lib/default-config.js');
+const options = Object.assign(defaultConfig, {
+	logger: function(message) {
+		console.log(message);
+	},
+	progressCb: function(totalLength, progressLength, chunkLength) {
+		console.log(totalLength, progressLength, chunkLength);
+	}
+});
 
 function Browser(pages, cap, options) {
 
 	this.pages = pages;
 	this.cap = cap;
 	this.options = options;
-
-	this.setPathOfChromeDriver(options);
 }
 
 
 Browser.prototype = {
 
+	run: function () {
+
+		this.setBrowserCaps();
+		this.startSeleniumStandAlone().then(function (child) {
+
+			//Before
+			return this.init()
+				.then(function () {
+
+					console.log(
+						'\n' +
+						'========================================\n' +
+						this.testLabel + '\n' +
+						'========================================'
+					);
+
+					let promises = [];
+
+					//Main
+					this.pages.forEach(function (page) {
+						console.time('\n\n end: ' + page.url);
+						let promise = this.executeCapture(page)
+							.then(function () {
+								console.timeEnd('\n\n end: ' + page.url);
+							});
+						promises.push(promise);
+					}.bind(this));
+
+					return Promise.all(promises);
+				}.bind(this))
+				//After
+				.then(this.end.bind(this))
+				.then(function () {
+					child.kill();
+				});
+		})
+
+	},
 	setPathOfChromeDriver: function (options) {
 
 		if(this.cap.browserName !== 'chrome') {
@@ -37,40 +83,24 @@ Browser.prototype = {
 		let chromeDriverPath = pathOfSeleniumStandalone + `.selenium/chromedriver/${options.drivers.chrome.version}-${options.drivers.chrome.arch}-chromedriver`;
 		chrome.setDefaultService(new chrome.ServiceBuilder(chromeDriverPath).build());
 	},
-	
-	run: function () {
 
-		//Before
-		return this.init()
-			.then(function () {
+	startSeleniumStandAlone: function () {
 
-				console.log(
-					'\n' +
-					'========================================\n' +
-					this.testLabel + '\n' +
-					'========================================'
-				);
-
-				let promises = [];
-
-				//Main
-				this.pages.forEach(function (page) {
-					console.time('\n\n end: ' + page.url);
-					let promise = this.executeCapture(page)
-						.then(function () {
-							console.timeEnd('\n\n end: ' + page.url);
-						});
-					promises.push(promise);
-				}.bind(this));
-
-				return Promise.all(promises);
-			}.bind(this))
-			//After
-			.then(this.end.bind(this));
+		if(this.remoteTesingServer) {
+			return Promise.resolve();
+		} else {
+			return new Promise(function (resolve, reject) {
+				selenium.install(options, function () {
+					selenium.start(options, function (err, child) {
+						if(err) throw err;
+						resolve(child);
+					});
+				});
+			})
+		}
 	},
 
 	init: function() {
-		this.setBrowserCaps();
 
 		this.testLabel = ' get screenshots / ' + this.cap.browserName + ' on ' + this.cap.os + ' with ' + this.platform;
 		console.log('\n\n');
@@ -122,6 +152,7 @@ Browser.prototype = {
 				this.remoteTesingServer = sauceLabsServer;
 				break;
 			default:
+				this.setPathOfChromeDriver(this.options);
 				this.cap.os = this.cap.os || /^win/.test(process.platform) ? 'windows' : 'mac';
 				const capsLocal = require('./caps-local.js').bind(this);
 				const capsLocalBrowser = capsLocal().browsers[this.cap.os][this.cap.browserName];
@@ -207,6 +238,7 @@ Browser.prototype = {
 			.then(function () {
 				if(this.isMobile) {
 					if (/chrome|safari/.test(this.cap.browserName)) {
+						console.log('hoge')
 						return capture.saveFullScreenShot(captureUrl);
 					} else {
 						return capture.saveScreenShot(captureUrl);

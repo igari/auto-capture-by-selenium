@@ -90,8 +90,8 @@ Capture.prototype = {
 						this.driver.executeScript('return document.body.scrollWidth'),
 						this.driver.executeScript('return window.innerHeight'),
 						this.driver.executeScript('return window.innerWidth'),
-						this.driver.executeScript('return screen.height'),
-						this.driver.executeScript('return screen.availHeight')
+						// this.driver.executeScript('return screen.height'),
+						// this.driver.executeScript('return screen.availHeight')
 					])
 					.then(function (data) {
 
@@ -99,12 +99,12 @@ Capture.prototype = {
 						let scrollWidth = data[1];
 						let windowHeight = data[2];
 						let windowWidth = data[3];
-						let screenHeight = data[4];
-						let availHeight = data[5];
-
-						console.log('windowWidth', windowWidth)
-						console.log('screenHeight', screenHeight)
-						console.log('availHeight', availHeight)
+						// let screenHeight = data[4];
+						// let availHeight = data[5];
+						//
+						// console.log('windowWidth', windowWidth)
+						// console.log('screenHeight', screenHeight)
+						// console.log('availHeight', availHeight)
 
 						let horizontalScrollMaxCount = Math.ceil(scrollWidth / windowWidth);
 						let verticalScrollMaxCount = Math.ceil(scrollHeight / windowHeight);

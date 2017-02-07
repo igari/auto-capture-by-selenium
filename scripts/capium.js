@@ -17,6 +17,7 @@ const capium = function (settings, options) {
 	}
 
 	caps.forEach(function (cap) {
+
 		let browser = new Browser(pages, cap, options);
 		promises.push(browser.run());
 	});
