@@ -9,7 +9,6 @@ It supports local testing and remote testing with BrowserStack or SauceLabs.
 - [JRE](https://java.com/ja/download/) 1.8~
 - [Graphics Magick](http://www.graphicsmagick.org)
 - [Selenium Standalone](https://www.npmjs.com/package/selenium-standalone)
-- [Mocha](https://mochajs.org/)
 - [mochawesome](http://adamgruber.github.io/mochawesome/)
 
 ## Installation
@@ -27,11 +26,6 @@ brew install graphicsmagick
 1. Get driver from http://www.seleniumhq.org/download/
 2. Set Environment PATH to the driver binary
 
-#### install Mocha & Mochawesome(Rich Reporter of Mocha)
-```bash
-npm install mocha -g
-npm install mochawesome -g
-```
 
 #### install Node Packages
 ```bash 
@@ -272,7 +266,9 @@ capium({
 
 ```
 
-### Remote Testing
+### Advanced
+
+Remote Testing and Execution of JavaScript
 
 ```js
 const capium = require('capium');
@@ -284,6 +280,9 @@ capium({
       executeScript: function () {
         return 'a'
       },
+    },
+    {
+      url: "http://www.yahoo.co.jp/",
       executeAsyncScript: function async() {
         let parentArgs = async.caller.arguments;
         let callback = parentArgs[parentArgs.length - 1];
@@ -301,8 +300,8 @@ capium({
     {
       "browserName": "chrome",
       "os": "mac",
-      'username': 'xxxxxxxxxxxxxx',//Add user for Browser Stack
-      'accessKey' : 'xxxxxxxxxxxxxx'//Add key for Browser Stack
+      'username': 'xxxxxxxxxxxxxx',//Add user for Sauce Labs
+      'accessKey' : 'xxxxxxxxxxxxxx'//Add key for Sauce Labs
     },
     {
       "browserName": "chrome",
