@@ -38,7 +38,6 @@ Capture.prototype = {
 			.then(function (devicePixelRatio) {
 				this.devicePixelRatio = +devicePixelRatio;
 			}.bind(this))
-			.then(this.executeScript.bind(this, this.fixed2absolute_in_browser))
 			.then(this.deleteTempImages.bind(this))
 			.then(function(data) {
 				return this.captureFullPage(fileName, data);
@@ -59,12 +58,12 @@ Capture.prototype = {
 				this.executeScript(this.fixed2absolute_in_browser)
 					.then(function () {
 						return Promise.all([
-							this.executeScript(function(){return document.body.scrollHeight;}),
-							this.executeScript(function(){return document.body.scrollWidth;}),
-							this.executeScript(function(){return window.innerHeight;}),
-							this.executeScript(function(){return window.innerWidth;}),
-							this.executeScript(function(){return screen.height;}),
-							this.executeScript(function(){return screen.availHeight;}),
+						this.executeScript(function(){return document.body.scrollHeight;}),
+						this.executeScript(function(){return document.body.scrollWidth;}),
+						this.executeScript(function(){return window.innerHeight;}),
+						this.executeScript(function(){return window.innerWidth;}),
+						this.executeScript(function(){return screen.height;}),
+						this.executeScript(function(){return screen.availHeight;}),
 						]);
 					}.bind(this))
 					.then(function (data) {
@@ -141,6 +140,7 @@ Capture.prototype = {
 						console.log('scrollY', scrollY);
 					});
 			}.bind(this))
+			.then(this.executeScript.bind(this, this.fixed2absolute_in_browser))
 			.then(this.saveScreenShot.bind(this, fileName))
 			.then(function() {
 				if (extraWidth > 0) {
