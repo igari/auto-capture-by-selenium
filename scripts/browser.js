@@ -2,29 +2,28 @@
 
 const assert = require("assert");
 const webdriver = require("selenium-webdriver");
-const chrome = require("selenium-webdriver/chrome");
 const By = webdriver.By;
 const until = webdriver.until;
+const chrome = require("selenium-webdriver/chrome");
 const Capture = require("./capture.js");
 const SauceLabs = require("saucelabs");
 const path = require("path");
 const fs = require("fs");
 const selenium = require('selenium-standalone');
 const defaultConfig = require('selenium-standalone/lib/default-config.js');
-const options = Object.assign(defaultConfig, {
-	logger: function(message) {
-		console.log(message);
-	},
-	progressCb: function(totalLength, progressLength, chunkLength) {
-		console.log(totalLength, progressLength, chunkLength);
-	}
-});
 
-function Browser(pages, cap, options) {
+function Browser(pages, cap) {
 
 	this.pages = pages;
 	this.cap = cap;
-	this.options = options;
+	this.options = Object.assign(defaultConfig, {
+		logger: function(message) {
+			console.log(message);
+		},
+		progressCb: function(totalLength, progressLength, chunkLength) {
+			console.log(totalLength, progressLength, chunkLength);
+		}
+	});
 }
 
 
@@ -32,40 +31,55 @@ Browser.prototype = {
 
 	run: function () {
 
-		this.setBrowserCaps();
-		this.startSeleniumStandAlone().then(function (child) {
+		try {
 
-			//Before
-			return this.init()
-				.then(function () {
+			this.setBrowserCaps();
 
-					console.log(
-						'\n' +
-						'========================================\n' +
-						this.testLabel + '\n' +
-						'========================================'
-					);
+			return this.startSeleniumStandAlone().then(function (child) {
 
-					let promises = [];
+				//Before
+				return this.init()
+					.then(function () {
 
-					//Main
-					this.pages.forEach(function (page) {
-						console.time('\n\n end: ' + page.url);
-						let promise = this.executeCapture(page)
-							.then(function () {
-								console.timeEnd('\n\n end: ' + page.url);
-							});
-						promises.push(promise);
-					}.bind(this));
+						console.log(
+							'\n' +
+							'========================================\n' +
+							this.testLabel + '\n' +
+							'========================================'
+						);
 
-					return Promise.all(promises);
-				}.bind(this))
-				//After
-				.then(this.end.bind(this))
-				.then(function () {
-					child.kill();
-				});
-		})
+						let promises = [];
+
+						//Main
+						this.pages.forEach(function (page) {
+							console.time(' end: ' + page.url);
+							let promise = this.executeCapture(page)
+								.then(function () {
+									console.log('\n- - - - - - - - - - - - - - - - - -');
+									console.timeEnd(' end: ' + page.url);
+								});
+							promises.push(promise);
+						}.bind(this));
+
+						return Promise.all(promises);
+					}.bind(this))
+					//After
+					.then(this.end.bind(this))
+					.then(function () {
+						if(child) {
+							child.kill();
+						}
+					});
+
+			}.bind(this));
+
+		} catch(error) {
+
+			console.error(error);
+			return Promise.reject(error);
+
+		}
+
 
 	},
 	setPathOfChromeDriver: function (options) {
@@ -89,14 +103,14 @@ Browser.prototype = {
 		if(this.remoteTesingServer) {
 			return Promise.resolve();
 		} else {
-			return new Promise(function (resolve, reject) {
-				selenium.install(options, function () {
-					selenium.start(options, function (err, child) {
+			return new Promise(function (resolve) {
+				selenium.install(this.options, function () {
+					selenium.start(this.options, function (err, child) {
 						if(err) throw err;
 						resolve(child);
-					});
-				});
-			})
+					}.bind(this));
+				}.bind(this));
+			}.bind(this))
 		}
 	},
 
@@ -172,6 +186,7 @@ Browser.prototype = {
 				.withCapabilities(this.browserCap)
 				.build();
 		}
+
 		return typeof this.driver.then === 'function' ? this.driver : Promise.resolve();
 	},
 
@@ -216,6 +231,7 @@ Browser.prototype = {
 						.then(this.driver.sleep.bind(this.driver, 1/*s*/*1000/*ms*/));
 				}
 			}.bind(this))
+			.then(page.wd.bind(this, this.driver, webdriver))
 			.then(function () {
 				var timeout = 60/*s*/ * 1000/*ms*/;
 				return this.driver.wait(this.executeScript(this.waitForUnbindingBeforeLoad), timeout, 'unbinding could not be completed.');
@@ -224,21 +240,8 @@ Browser.prototype = {
 				return this.executeScript(this.unbindBeforeUnload);
 			}.bind(this))
 			.then(function () {
-				if(typeof page.executeScript === 'function') {
-					return this.executeScript(page.executeScript)
-						.then(console.log);
-				}
-			}.bind(this))
-			.then(function () {
-				if(typeof page.executeAsyncScript === 'function') {
-					return this.executeAsyncScript(page.executeAsyncScript)
-						.then(console.log);
-				}
-			}.bind(this))
-			.then(function () {
 				if(this.isMobile) {
 					if (/chrome|safari/.test(this.cap.browserName)) {
-						console.log('hoge')
 						return capture.saveFullScreenShot(captureUrl);
 					} else {
 						return capture.saveScreenShot(captureUrl);
@@ -255,12 +258,17 @@ Browser.prototype = {
 				assert(false, error);
 			});
 	},
-	overrideUrlIfHasBasicAuth: function (page, hasBasicAuth) {
-		if(hasBasicAuth) {
-			page.url = this.getUrlForBasicAuth(page.url, page.basicAuth.user, page.basicAuth.key)
-		}
-		return Promise.resolve(page.url);
-	},
+	// overrideUrlIfHasBasicAuth: function (page, hasBasicAuth) {
+	// 	if(hasBasicAuth) {
+	// 		page.url = this.getUrlForBasicAuth(page.url, page.basicAuth.user, page.basicAuth.key)
+	// 	}
+	// 	return Promise.resolve(page.url);
+	// },
+	// waitOnload: function async() {
+	// 	let parentArgs = async.caller.arguments;
+	// 	let callback = parentArgs[parentArgs.length - 1];
+	// 	window.addEventListener('load', callback);
+	// },
 	unbindBeforeUnload: function() {
 		window.onbeforeunload = null;
 		try {
@@ -268,6 +276,9 @@ Browser.prototype = {
 				$(window).off('beforeunload');
 			}
 		} catch(e) {}
+	},
+	waitForNotEqualHeight: function () {
+		return window.innerHeight !== document.body.scrollHeight;
 	},
 	waitForUnbindingBeforeLoad: function() {
 		var iaPageLoaded = document.readyState === 'complete' &&

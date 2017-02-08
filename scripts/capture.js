@@ -34,40 +34,11 @@ Capture.prototype = {
 	},
 	saveFullScreenShot: function(fileName) {
 
-		return this.executeScript(function () {
-
-				document.querySelector("body").style.overflow = "hidden";
-
-				var allElements = document.querySelectorAll("*");
-				var style = document.createElement('style');
-				var head = document.querySelector('head');
-				head.appendChild(style);
-				var sheet = style.sheet;
-
-				for(var i = 0, len = allElements.length; i < len; i++) {
-					var element = allElements[i];
-					var position = getComputedStyle(element).position;
-					if(position === 'fixed') {
-						element.style.setProperty('position', 'absolute', 'important');
-					}
-					var positionBefore = getComputedStyle(element, '::before').position;
-					var positionAfter = getComputedStyle(element, '::after').position;
-					var className = element.className ? '.' + Array.prototype.join.call(element.classList, '.') : '';
-					var tagName = element.tagName.toLowerCase();
-					if(positionBefore === 'fixed') {
-						sheet.insertRule(tagName + element.id + className + '::before {position:absolute !important;}', sheet.cssRules.length -1);
-					}
-					if(positionAfter === 'fixed') {
-						sheet.insertRule(tagName + element.id + className + '::after {position:absolute !important;}', sheet.cssRules.length -1);
-					}
-				}
-
-				return window.devicePixelRatio;
-
-			})
+		return this.executeScript(function () {return window.devicePixelRatio;})
 			.then(function (devicePixelRatio) {
 				this.devicePixelRatio = +devicePixelRatio;
 			}.bind(this))
+			.then(this.executeScript.bind(this, this.fixed2absolute_in_browser))
 			.then(this.deleteTempImages.bind(this))
 			.then(function(data) {
 				return this.captureFullPage(fileName, data);
@@ -85,26 +56,32 @@ Capture.prototype = {
 
 			let capturePage = function () {
 
-				Promise.all([
-						this.driver.executeScript('return document.body.scrollHeight'),
-						this.driver.executeScript('return document.body.scrollWidth'),
-						this.driver.executeScript('return window.innerHeight'),
-						this.driver.executeScript('return window.innerWidth'),
-						// this.driver.executeScript('return screen.height'),
-						// this.driver.executeScript('return screen.availHeight')
-					])
+				this.executeScript(this.fixed2absolute_in_browser)
+					.then(function () {
+						return Promise.all([
+							this.executeScript(function(){return document.body.scrollHeight;}),
+							this.executeScript(function(){return document.body.scrollWidth;}),
+							this.executeScript(function(){return window.innerHeight;}),
+							this.executeScript(function(){return window.innerWidth;}),
+							this.executeScript(function(){return screen.height;}),
+							this.executeScript(function(){return screen.availHeight;}),
+						]);
+					}.bind(this))
 					.then(function (data) {
 
 						let scrollHeight = data[0];
 						let scrollWidth = data[1];
 						let windowHeight = data[2];
 						let windowWidth = data[3];
-						// let screenHeight = data[4];
-						// let availHeight = data[5];
-						//
-						// console.log('windowWidth', windowWidth)
-						// console.log('screenHeight', screenHeight)
-						// console.log('availHeight', availHeight)
+						let screenHeight = data[4];
+						let availHeight = data[5];
+
+						console.log('scrollWidth', scrollWidth)
+						console.log('windowWidth', windowWidth)
+						console.log('scrollHeight', scrollHeight)
+						console.log('windowHeight', windowHeight)
+						console.log('screenHeight', screenHeight)
+						console.log('availHeight', availHeight)
 
 						let horizontalScrollMaxCount = Math.ceil(scrollWidth / windowWidth);
 						let verticalScrollMaxCount = Math.ceil(scrollHeight / windowHeight);
@@ -112,7 +89,7 @@ Capture.prototype = {
 						let isLastHorizontalScroll = horizontalScrollIndex === horizontalScrollMaxCount - 1;
 						let isLastVerticalScroll = verticalScrollIndex === verticalScrollMaxCount - 1;
 
-						let pathName = PATH.TEMP_DIR + PATH.TEMP_FILENAME.replace('{h}', horizontalScrollIndex+'').replace('{v}', verticalScrollIndex+'');
+						let pathName = PATH.TEMP_DIR + PATH.TEMP_FILENAME.replace('{h}', horizontalScrollIndex + '').replace('{v}', verticalScrollIndex + '');
 
 						this.saveScreenShotAndScroll(pathName, scrollHeight, scrollWidth, windowHeight, windowWidth, verticalScrollIndex, horizontalScrollIndex)
 							.then(function () {
@@ -157,7 +134,13 @@ Capture.prototype = {
 		}
 
 		return this.driver.executeScript('window.scrollTo(' + currentScrollPosX + ',' + currentScrollPosY + ')')
-			.then(this.driver.sleep.bind(this.driver, 500))
+			.then(this.driver.sleep.bind(this.driver, 1000))
+			.then(function () {
+				return this.executeScript(function () {return window.scrollY;})
+					.then(function (scrollY) {
+						console.log('scrollY', scrollY);
+					});
+			}.bind(this))
 			.then(this.saveScreenShot.bind(this, fileName))
 			.then(function() {
 				if (extraWidth > 0) {
@@ -171,7 +154,16 @@ Capture.prototype = {
 			}.bind(this));
 	},
 	combineTempImages: function(fileName) {
-		this.hashPathList = this.imagePathList.reduce(function(previousValue, currentValue, index) {
+
+		return this.generateHashPathList()
+			.then(this.combineHorizontalTempImages.bind(this))
+			.then(this.combineVerticalTempImages.bind(this))
+			.then(function (combineImage) {
+				return this.saveCombineImage(fileName, combineImage)
+			}.bind(this));
+	},
+	generateHashPathList: function () {
+		let hashPathList = this.imagePathList.reduce(function(previousValue, currentValue, index) {
 			var hashV = parseInt(currentValue.match(/v[0-9]+/)[0].slice(1));
 			if (previousValue[hashV] === undefined) {
 				previousValue[hashV] = [];
@@ -179,30 +171,25 @@ Capture.prototype = {
 			previousValue[hashV].push(currentValue);
 			return previousValue;
 		}, {});
-
-		return this.combineHorizontalTempImages()
-			.then(this.combineVerticalTempImages.bind(this))
-			.then(function (combineImage) {
-				return this.saveCombineImage(fileName, combineImage)
-			}.bind(this));
+		return Promise.resolve(hashPathList);
 	},
 	combineVerticalTempImages: function (horizontalCombList) {
 		return this.appendTempImages(horizontalCombList, false);
 	},
-	combineHorizontalTempImages: function() {
+	combineHorizontalTempImages: function(hashPathList) {
 
 		return new Promise(function(resolve) {
 
 			let horizontalCombList = [];
 			let combineHorizontalTempImage = function(vScrollIndex) {
 
-				let hasNextData = this.hashPathList[vScrollIndex] !== undefined;
+				let hasNextData = hashPathList[vScrollIndex] !== undefined;
 				if (!hasNextData) {
 					resolve(horizontalCombList);
 					return;
 				}
 
-				let imageList = this.hashPathList[vScrollIndex];
+				let imageList = hashPathList[vScrollIndex];
 				let templateFileName = PATH.TEMP_DIR + PATH.TEMP_HCOMB_FILENAME.replace('{v}', vScrollIndex);
 
 				this.appendTempImages(imageList, true)
@@ -282,7 +269,41 @@ Capture.prototype = {
 				resolve();
 			});
 		});
-	}
+	},
+
+	fixed2absolute_in_browser: function() {
+
+		var allElements = document.querySelectorAll("*");
+
+		var style = document.querySelector('#capium-style-element');
+		if(!style) {
+			style = document.createElement('style');
+			style.id = 'capium-style-element';
+			var head = document.querySelector('head');
+			head.appendChild(style);
+		}
+
+		var sheet = style.sheet;
+
+		for (var i = 0, len = allElements.length; i < len; i++) {
+			var element = allElements[i];
+			var position = getComputedStyle(element).position;
+			if (position === 'fixed') {
+				element.style.setProperty('position', 'absolute', 'important');
+			}
+			var positionBefore = getComputedStyle(element, '::before').position;
+			var positionAfter = getComputedStyle(element, '::after').position;
+			var className = element.className ? '.' + Array.prototype.join.call(element.classList, '.') : '';
+			var idName = '#' + element.id;
+			var tagName = element.tagName.toLowerCase();
+			if (positionBefore === 'fixed') {
+				sheet.insertRule(tagName + idName + className + '::before {position:absolute !important;}', sheet.cssRules.length - 1);
+			}
+			if (positionAfter === 'fixed') {
+				sheet.insertRule(tagName + idName + className + '::after {position:absolute !important;}', sheet.cssRules.length - 1);
+			}
+		}
+	},
 };
 
 module.exports = Capture;

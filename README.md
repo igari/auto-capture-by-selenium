@@ -123,41 +123,24 @@ See [all capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/
 ### If you use safari, turn on `Allow Remote Automation` before running.
 Safari > Develop > Allow Remote Automation.
 
-### Executing JavaScript by page which specified
+### Executing Webdriver API by page
 Edit `./settings/pages.js`
 
-#### sync
 ```js
 module.exports = [
   {
     url: "https://www.google.co.jp/",
-    executeScript: function () {
-    
-      //Any Code
-      
-      return 'any value'
+    //Write here to execute webdriver api (Plain Webdriver Syntax)
+    wd: function (driver, webdriver) {
+    return driver
+      .wait(webdriver.until.elementLocated(webdriver.By.className("LaunchApp__closeIcon")), 10*1000, 'Could not found close button')
+      .then(function (element) {
+        return element.click();
+      });
     }
   }
 ];
 ```
-
-#### async
-```js
-module.exports = [
-  {
-    url: "https://www.google.co.jp/",
-    executeAsyncScript: function func() {
-      let parentArgs = func.caller.arguments;
-      let callback = parentArgs[parentArgs.length - 1];
-      
-      //Any Code
-      
-      callback('any value');//This is important for finishing.
-    }
-  }
-];
-```
-
 
 ### Specifying Basic Authentication Username and Password
 Include Username and Password into the URL.
@@ -303,16 +286,14 @@ capium({
   pages: [
     {
       url: "https://www.google.co.jp/",
-      executeScript: function () {
-        return 'a'
-      },
-    },
-    {
-      url: "http://www.yahoo.co.jp/",
-      executeAsyncScript: function async() {
-        let parentArgs = async.caller.arguments;
-        let callback = parentArgs[parentArgs.length - 1];
-        callback('b');
+      
+      //Write here to execute webdriver api (Plain Webdriver Syntax)
+      wd: function (driver, webdriver) {
+      return driver
+        .wait(webdriver.until.elementLocated(webdriver.By.className("LaunchApp__closeIcon")), 10*1000, 'Could not found close button')
+        .then(function (element) {
+          return element.click();
+        });
       }
     }
   ],

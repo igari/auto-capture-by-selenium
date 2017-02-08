@@ -269,10 +269,32 @@ Browser.prototype = {
 		return func.toString();
 	},
 	executeScript: function (func) {
-		return this.driver.executeScript('return (' + this.func2str(func) + '());');
+		let args = [];
+		let argIndex = 0;
+		for(let arg of arguments) {
+			if(argIndex === 0) {
+				continue;
+			}
+			args.push(arg);
+			argIndex++;
+
+		}
+		let argsString = args.length > 0 ? '"' + args.join('","') + '"' : '';
+		return this.driver.executeScript('return (' + this.func2str(func) + '(' + argsString + '));');
 	},
 	executeAsyncScript: function (func) {
-		return this.driver.executeAsyncScript('(' + this.func2str(func) + '())');
+		let args = [];
+		let argIndex = 0;
+		for(let arg of arguments) {
+			if(argIndex === 0) {
+				continue;
+			}
+			args.push(arg);
+			argIndex++;
+
+		}
+		let argsString = args.length > 0 ? '"' + args.join('","') + '"' : '';
+		return this.driver.executeAsyncScript('(' + this.func2str(func) + '(' + argsString + '));');
 	},
 	getUrlForBasicAuth: function(url, id, pass) {
 		let separator = '://';

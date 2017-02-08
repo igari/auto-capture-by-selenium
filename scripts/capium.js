@@ -2,8 +2,7 @@
 
 const Browser = require('../scripts/browser.js');
 
-const capium = function (settings, options) {
-	console.log(process.cwd());
+const capium = function (settings) {
 
 	let promises = [];
 	let pages;
@@ -18,7 +17,7 @@ const capium = function (settings, options) {
 
 	caps.forEach(function (cap) {
 
-		let browser = new Browser(pages, cap, options);
+		let browser = new Browser(pages, cap);
 		promises.push(browser.run());
 	});
 
