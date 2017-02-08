@@ -1,5 +1,12 @@
-node_modules/**
-images/**
-.temp/**
+node_modules
+output
+.temp
 !.gitkeep
 .DS_Store
+*.iml
+.idea
+.temp
+launch-bs-proxy.sh
+launch-sc-proxy.sh
+samples
+browserStackLocal.txt

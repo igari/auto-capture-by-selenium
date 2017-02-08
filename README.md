@@ -1,55 +1,377 @@
-# [WIP] auto-capture-by-selenium
+# Capium
 
-## 事前準備(Windows, Mac共通)
+A tool to get screenshots of web pages so easily and automatically. It works with Selenium3.0 for NodeJS and also be able to connect to BrowserStack and SauceLabs.
 
-### Javaバージョン確認
+## Dependencies
 
-コンソールを開いて、以下のコマンドを実行
-```bash
-java -version
+- [Node.js](https://nodejs.org/) v6.4.0~
+- [JRE](https://java.com/ja/download/) 1.8~
+- [Graphics Magick](http://www.graphicsmagick.org)
+- [Selenium Standalone](https://www.npmjs.com/package/selenium-standalone)
+
+## Installation
+
+### Install to your project
+```sh
+yarn add capium
+```
+or
+```sh
+npm i capium --save-dev
 ```
 
-もし、javaのバージョンが1.8以下の場合は更新が必要なため、以下のフォルダにあるexeファイルを実行する。
-\lib\java\jre-8u91-windows-i586-iftw.exe
-
-### Nodeモジュールインストール
-
-コンソールを開いて、`selenium` ディレクトリまで移動し、以下のコマンドを実行。
+### Install `graphic magick` (if you don't have)
 ```bash
-npm install
+brew install imagemagick
+brew install graphicsmagick
 ```
 
-### Graphics Magickのインストール
+## Basic Usage
 
-以下のインストーラを実行し、Graphics Magickをインストール。
-\lib\graphic-magick\GraphicsMagick-1.3.24-Q16-win32-dll.exe
+```js
+const capium = require('capium');
 
-## 事前準備(Windowsのみ)
+capium({
+  pages: [
+    {
+      url: "https://www.google.co.jp/"
+    }
+  ],
+  caps: [
+    {
+      "browserName": "chrome"
+    }
+  ]
+});
 
-#### レジストリに設定を追加
-
-IEでBasic認証を行うために以下のbatを実行してレジストリに設定を追加する
-\shell\config-for-ie.bat
-
-*上記についての詳細は[こちら](http://aleetesting.blogspot.jp/2011/10/selenium-webdriver-tips.html)の記事をご参照ください。*
-
-## Seleniumの実行
-
-### Selenium Serverの起動
-
-以下のbatファイルを実行する。
-
-Windowsの場合
-\shell\startup-selenium-server.bat
-
-Macの場合
-```bash
-sh \shell\startup-selenium-server.sh
 ```
 
-### テストスクリプトの実行
+## Advanced Usage
 
-テストコードを実行し、キャプチャ処理を実行する。
-```bash
-node scripts/capture.js
+Remote Testing and Execution of JavaScript
+
+```js
+const capium = require('capium');
+
+capium({
+  pages: [
+    {
+      url: "http://www.yahoo.co.jp/",
+      
+      //Write here to execute webdriver api (Plain Webdriver Syntax)
+      wd: function (driver, webdriver) {
+      return driver
+        .wait(webdriver.until.elementLocated(webdriver.By.className("LaunchApp__closeIcon")), 10*1000, 'Could not found close button')
+        .then(function (element) {
+          return element.click();
+        });
+      }
+    }
+  ],
+  caps: [
+    {
+      "browserName": "safari",
+      "os": "ios",
+      'browserstack.user': 'xxxxxxxxxxxxxx',//Add user for Browser Stack
+      'browserstack.key' : 'xxxxxxxxxxxxxx'//Add key for Browser Stack
+    }
+  ]
+});
+
 ```
+
+More information about Remote Testing Services is...
+- [Use BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
+- [Use SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
+
+## Setup
+
+### Page Settings
+
+```js
+{
+  pages: [
+    {
+      url: "https://www.google.co.jp/"
+    },
+    {
+      url: "https://www.google.co.jp/",
+      wd: function(driver, webdriver) {
+        driver.findElement(webdriver.By.name('q')).sendKeys('webdriver');
+        driver.findElement(webdriver.By.name('btnG')).click();
+        driver.wait(webdriver.until.titleIs('webdriver - Google Search'), 1000);
+      }
+    }
+  ];
+},
+```
+
+- `url` is target url to transition
+- `wd` is function to execute WebDriver API when page of `url` is loaded.
+
+### Browsers Capabilities
+
+```js
+{
+  caps [
+    {
+      "browserName": "chrome",
+      "os": "mac",
+    },
+    {
+      "browserName": "safari",
+      "os": "mac"
+    }
+  ];
+}
+
+```
+
+- `browserName` and `os` is original properties for Capium
+- Other properties is available like capabilities of `Webdriver` and `BrowserStack` and `SauceLabs`
+
+
+See more key of [os and browserName](https://github.com/igari/capium/tree/master#os-and-browser)
+
+See [all capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities)
+
+*Capabilities you specified takes precedence over below Default Capabilities*
+
+#### Default Capabilities in Capium
+- [Default Capabilities for Local](https://github.com/igari/capium/blob/master/scripts/caps-local.js)
+- [Default Capabilities for BrowserStack](https://github.com/igari/capium/blob/master/scripts/caps-browserstack.js)
+- [Default Capabilities for SauceLabs](https://github.com/igari/capium/blob/master/scripts/caps-saucelabs.js)
+
+
+#### `os` and `browserName`
+
+|              | chrome | firefox | safari | edge | ie11 |
+| ------------ | ------ | ------ | ------ | ------ | ------ |
+| windows      | &check; | &check; |      | &check;| &check; |
+| mac          | &check; | &check; | &check; |      |       |
+| android*1      | &check; |       |        |        |       |
+| ios*1          | &check; |       | &check; |       |        |
+| android_emulator | &check; |       |        |        |       |
+| ios_emulator | &check; |       | &check; |       |        |
+
+*1 Only supported in the case of Using BrowserStack
+
+### Destination Directory
+
+If you run it, Then you can see screenshots(png) in the `${you project root}/output` directory.
+
+
+## Browser Supports
+
+|              | chrome | firefox | edge | ie11 | safari | iphone safari | android chrome |
+| ------------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| Browser Stack (remote)| &check; | &check;  | &check; | &check;| &check; | &check; | &check; |
+| Sauce Labs (remote)  | &check;| &check;| &check; | &check;| &check; | &triangle; | &triangle; |
+| Windows (local)     | &check; | &check; | &check; | &check; |        |        |        |
+| Mac (local)         | &check; |        |        |        | &check; |        |        |
+
+
+## Range of Screenshot
+
+| chrome | firefox | edge | ie11 | safari | ios safari | android chrome |
+| ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| Above the Fold*2 | Full Page | Full Page | Full Page | Full Page*1  | Above the Fold*2 | Above the Fold*2 |
+
+*1) In case of Safari10~ & Selenium3~. Otherwise Above the fold
+
+
+## Run as Standalone
+
+### Clone this repository
+```sh
+git clone https://github.com/igari/capium.git
+````
+
+### Install Node Package Modules
+```sh
+npm i
+````
+
+### Try out (on your local environment)
+
+#### Execute Command
+
+```bash
+npm run ss
+```
+If you run above command, Firefox start and get screenshot of Google and Yahoo!
+
+
+#### Check `./output` directory
+Then you can see screenshots(png) of Google and Yahoo!
+
+### Setup
+
+Edit `./config.js`
+
+```js
+module.exports = {
+	pages: [
+		{
+			url: "https://www.google.co.jp/"
+		},
+		{
+			url: "http://www.yahoo.co.jp/"
+		}
+	],
+	caps: [
+		{
+			"browserName": "chrome",
+		},
+		{
+			"browserName": "firefox",
+		}
+	]
+};
+```
+
+## TIPS
+
+### If you get an error of missing driver
+1. Get driver from http://www.seleniumhq.org/download/
+2. Enable the binary to be run from anywhere
+
+### If you use safari, turn on `Allow Remote Automation` before running.
+Safari > Develop > Allow Remote Automation.
+
+### Executing Webdriver API by page
+Edit Page Settings
+
+```js
+
+module.exports = {
+  pages: [
+    {
+      url: "https://www.google.co.jp/",
+      
+      //Write here to execute webdriver api (Plain Webdriver Syntax)
+      wd: function (driver, webdriver) {
+        return driver
+          .wait(webdriver.until.elementLocated(webdriver.By.className("LaunchApp__closeIcon")), 10*1000, 'Could not found close button')
+          .then(function (element) {
+              return element.click();
+          });
+      }
+    }
+  ],
+  caps: [
+    {
+      "browserName": "chrome",
+    }
+  ]
+};
+```
+
+### Specifying Basic Authentication Username and Password
+Include Username and Password into the URL.
+
+```js
+module.exports = [
+  {
+    url: "http://username:password@example.com"
+  }
+];
+```
+
+#### Caution!!!
+Take care to be not published the secret information.
+
+### Use BrowserStack for Remote Testing
+
+Edit Capability to specify `browserstack.user` and `browserstack.key`.
+```js
+module.exports = [
+  {
+    "browserName": "chrome",
+    "os": "windows",
+    "browserstack.user": "xxxxxxxxxxx",
+    "browserstack.key": "xxxxxxxxxxxxx"
+  }
+];
+```
+
+See [all capabilities of BrowserStack](https://www.browserstack.com/automate/capabilities)
+
+#### Local tesing with BrowserStack (if you want to test on local server e.g. http://localhost)
+```js
+module.exports = [
+  {
+    "browserName": "chrome",
+    "os": "windows",
+    "browserstack.user": "xxxxxxxxxxx",
+    "browserstack.key": "xxxxxxxxxxxxx",
+    "browserstack.key": true//Just add this!!
+  }
+];
+```
+### Use SauceLabs for Remote Testing
+
+Edit Capability to specify `username` and `accessKey`.
+
+```json
+{
+  "browserName": "chrome",
+  "os": "windows",
+  "username": "xxxxxxxxxxx",
+  "accessKey": "xxxxxxxxxxxxx"
+}
+```
+See [all capabilities of SauceLabs](https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options)
+
+#### Local testing with Sauce Connect of Sauce Labs (if you want to test on local server e.g. http://localhost)
+```bash
+./util/sc-4.3.6-osx/bin/sc-u ${username} -k ${accesskey}
+```
+
+#### Test page with Basic Authentication in URL
+```bash
+./util/sc-4.3.6-osx/bin/sc-u ${saucelabs_username} -k ${saucelabs_accesskey} -a ${host}:${port}:${basicauth_username}:${basicauth_password}
+```
+
+Then it doesn't need to include username and password for basic authentication into the URL.
+
+ex)
+```
+./util/sc-4.3.6-osx/bin/sc-u ${username} -k ${accesskey} -a example.com:80:hoge:fuga
+
+```
+`-a` options is possible to be specified multiple time.
+
+## Remote testing tools used by Capium.
+
+They are awesome cloud testing services using real browsers and devices.
+
+<a href="https://www.browserstack.com/"><img src="https://style-validator.io/img/browserstack-logo.svg" width="350" style="vertical-align: middle;"></a><br>
+<br>
+<a href="https://saucelabs.com/"><img src="https://saucelabs.com/content/images/logo@2x.png" width="350" style="vertical-align: middle;"></a><br>
+
+
+## Roadmap
+
+###### current features
+- Selenium can be started sooooo easily. if you write only config, it's all fine basically.
+- By default, chrome and firefox and safari is runnable as it is. their drivers will be installed automatically.(safari10's driver is already installed natively.)
+- Support full screenshot except for android.
+- SauceLabs can be used with easy config.
+- BrowserStack can be used with easy config.
+- Writable additional selenium code when the config is added `wd` property as function
+
+###### v0.7.0
+- Writable more flexible config. 
+- Detectable error more finely.
+- Possible to get full screenshot even if the page is implemented lazyload.
+
+###### v0.7.1
+- Writable ful native capability also.
+- Runnable `npm test` to test this app.
+- Runnable on windows also correctly.
+
+###### v0.7.2
+- Set color console message
+- Add mocha as test framework.
+
