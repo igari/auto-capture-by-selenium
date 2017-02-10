@@ -19,13 +19,18 @@ brew install graphicsmagick
 ```
 
 ## Basic Usage
+`pages and capabilities` are able to be specified multiply with Array.
+If single, it does'nt need to specify as Array.
 
 index.js
 ```js
 const capium = require('capium');
 
 capium({
-  pages: {url: "https://www.google.co.jp/"},
+  pages: [
+    "https://www.google.com/",
+    "http://www.apple.com/",
+  ],
   caps: {"browserName": "chrome"}
 });
 
@@ -38,7 +43,8 @@ node index.js
 
 ## Advanced Usage
 
-`Remote Testing` and `Selenium Code` and `Multiple specifying of pages and capabilities` is available.
+`Remote Testing` and `WebDriver Code` is also available.
+If you want to write `WebDriver Code`, make pages property value an object, and set `url` and `wd` key. 
 
 ```js
 const capium = require('capium');
@@ -62,12 +68,6 @@ capium({
   ],
   caps: [
     {
-      "browserName": "chrome",
-    },
-    {
-      "browserName": "firefox",
-    },
-    {
       "browserName": "safari",
       "os": "ios",
       'browserstack.user': 'xxxxxxxxxxxxxx',//Add user for Browser Stack
@@ -90,10 +90,7 @@ More information about Remote Testing Services is...
 {
   pages: [
     {
-      url: "https://www.google.com/"
-    },
-    {
-      url: "https://www.google.co.jp/",
+      url: "http://www.google.com/ncr",
       wd: function(driver, webdriver) {
         driver.findElement(webdriver.By.name('q')).sendKeys('webdriver');
         driver.findElement(webdriver.By.name('btnG')).click();
