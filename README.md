@@ -2,13 +2,6 @@
 
 A tool to get screenshots of web pages so easily and automatically. It works with Selenium3.0 for NodeJS and also be able to connect to BrowserStack and SauceLabs.
 
-## Dependencies
-
-- [Node.js](https://nodejs.org/) v6.4.0~
-- [JRE](https://java.com/ja/download/) 1.8~
-- [Graphics Magick](http://www.graphicsmagick.org)
-- [Selenium Standalone](https://www.npmjs.com/package/selenium-standalone)
-
 ## Installation
 
 ### Install to your project
@@ -22,33 +15,30 @@ npm i capium --save-dev
 
 ### Install `graphic magick` (if you don't have)
 ```bash
-brew install imagemagick
 brew install graphicsmagick
 ```
 
 ## Basic Usage
 
+index.js
 ```js
 const capium = require('capium');
 
 capium({
-  pages: [
-    {
-      url: "https://www.google.co.jp/"
-    }
-  ],
-  caps: [
-    {
-      "browserName": "chrome"
-    }
-  ]
+  pages: {url: "https://www.google.co.jp/"},
+  caps: {"browserName": "chrome"}
 });
 
 ```
 
+just run the file as node
+```sh
+node index.js
+```
+
 ## Advanced Usage
 
-Remote Testing and Execution of JavaScript
+`Remote Testing` and `Selenium Code` and `Multiple specifying of pages and capabilities` is available.
 
 ```js
 const capium = require('capium');
@@ -59,6 +49,8 @@ capium({
       url: "http://www.yahoo.co.jp/",
       
       //Write here to execute webdriver api (Plain Webdriver Syntax)
+      //This will executed before getting screenshot.
+      //NOTE: please don't forget to chain all promises correclty
       wd: function (driver, webdriver) {
       return driver
         .wait(webdriver.until.elementLocated(webdriver.By.className("LaunchApp__closeIcon")), 10*1000, 'Could not found close button')
@@ -69,6 +61,12 @@ capium({
     }
   ],
   caps: [
+    {
+      "browserName": "chrome",
+    },
+    {
+      "browserName": "firefox",
+    },
     {
       "browserName": "safari",
       "os": "ios",
@@ -92,7 +90,7 @@ More information about Remote Testing Services is...
 {
   pages: [
     {
-      url: "https://www.google.co.jp/"
+      url: "https://www.google.com/"
     },
     {
       url: "https://www.google.co.jp/",
@@ -342,6 +340,13 @@ ex)
 ```
 `-a` options is possible to be specified multiple time.
 
+## Dependencies
+
+- [Node.js](https://nodejs.org/) v6.4.0~
+- [JRE](https://java.com/ja/download/) 1.8~
+- [Graphics Magick](http://www.graphicsmagick.org)
+- [Selenium Standalone](https://www.npmjs.com/package/selenium-standalone)
+
 ## Remote testing tools used by Capium.
 
 They are awesome cloud testing services using real browsers and devices.
@@ -354,12 +359,13 @@ They are awesome cloud testing services using real browsers and devices.
 ## Roadmap
 
 ###### current features
-- Selenium can be started sooooo easily. if you write only config, it's all fine basically.
+- Possible to get screenshot of web pages if you write only config, it's all fine basically. it can be started sooooo easily as just Selenium.
+- Writable additional selenium code when the config is added `wd` property as function
 - By default, chrome and firefox and safari is runnable as it is. their drivers will be installed automatically.(safari10's driver is already installed natively.)
-- Support full screenshot except for android.
+- Support for full screenshot except for android.
 - SauceLabs can be used with easy config.
 - BrowserStack can be used with easy config.
-- Writable additional selenium code when the config is added `wd` property as function
+- Local testing is also available with above remote testing services(e.g. localhost site.)
 
 ###### v0.7.0
 - Writable more flexible config. 
