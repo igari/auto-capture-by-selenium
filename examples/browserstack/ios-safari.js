@@ -2,23 +2,14 @@ const capium = require('./../../lib/capium.js');
 
 capium({
 	pages: [
-		{
-			url: "http://www.google.com"
-		},
-		{
-			url: "http://www.yahoo.com"
-		},
-		{
-			url: "http://www.apple.com"
-		}
+		"http://www.google.com",
+		"http://www.apple.com"
 	],
-	caps: [
-		{
-			"browserName": "safari",
-			"os": "ios",
-			"browserstack.user": "!!!!!!!FIXME!!!!!!!!!",
-			"browserstack.key": "!!!!!!!FIXME!!!!!!!!!",
-			// "browserstack.local": true
-		}
-	]
+	caps: {
+		"browserName": "safari",
+		"os": "ios",
+		"browserstack.user": "!!!!!!!FIXME!!!!!!!!!",
+		"browserstack.key": "!!!!!!!FIXME!!!!!!!!!",
+		// "browserstack.local": true
+	}
 });
