@@ -29,11 +29,13 @@ const capium = require('capium');
 capium({
   pages: [
     "https://www.google.com/",
-    "http://www.apple.com/",
+    "https://www.mozilla.org/",
   ],
-  caps: {"browserName": "chrome"}
+  caps: [
+    {"browserName": "chrome"},
+    {"browserName": "firefox"}
+  ]
 });
-
 ```
 
 just run the file as node
@@ -52,17 +54,14 @@ const capium = require('capium');
 capium({
   pages: [
     {
-      url: "http://www.yahoo.co.jp/",
+      url: "http://www.google.com/ncr",
       
       //Write here to execute webdriver api (Plain Webdriver Syntax)
       //This will executed before getting screenshot.
-      //NOTE: please don't forget to chain all promises correclty
       wd: function (driver, webdriver) {
-      return driver
-        .wait(webdriver.until.elementLocated(webdriver.By.className("LaunchApp__closeIcon")), 10*1000, 'Could not found close button')
-        .then(function (element) {
-          return element.click();
-        });
+        driver.findElement(webdriver.By.name('q')).sendKeys('webdriver');
+        driver.findElement(webdriver.By.name('btnG')).click();
+        driver.wait(webdriver.until.titleIs('webdriver - Google Search'), 1000);
       }
     }
   ],
@@ -72,59 +71,35 @@ capium({
       "os": "ios",
       'browserstack.user': 'xxxxxxxxxxxxxx',//Add user for Browser Stack
       'browserstack.key' : 'xxxxxxxxxxxxxx'//Add key for Browser Stack
+    },
+    {
+      "browserName": "safari",
+      "os": "ios",
+      'username': 'xxxxxxxxxxxxxx',//Add user for Sauce Labs
+      'accessKey' : 'xxxxxxxxxxxxxx'//Add key for Suace Labs
     }
   ]
 });
-
 ```
 
 More information about Remote Testing Services is...
+
 - [Use BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
 - [Use SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
 
 ## Setup
 
-### Page Settings
-
-```js
-{
-  pages: [
-    {
-      url: "http://www.google.com/ncr",
-      wd: function(driver, webdriver) {
-        driver.findElement(webdriver.By.name('q')).sendKeys('webdriver');
-        driver.findElement(webdriver.By.name('btnG')).click();
-        driver.wait(webdriver.until.titleIs('webdriver - Google Search'), 1000);
-      }
-    }
-  ];
-},
-```
+### Pages Settings
 
 - `url` is target url to transition
-- `wd` is function to execute WebDriver API when page of `url` is loaded.
+- `wd`(webdriver) is function to execute WebDriver API when page of `url` is loaded.
+- A parameter `driver` is `built browser instance`.
+- A parameter `webdriver` is `require('selenium-webdriver')`.
 
 ### Browsers Capabilities
 
-```js
-{
-  caps [
-    {
-      "browserName": "chrome",
-      "os": "mac",
-    },
-    {
-      "browserName": "safari",
-      "os": "mac"
-    }
-  ];
-}
-
-```
-
-- `browserName` and `os` is original properties for Capium
-- Other properties is available like capabilities of `Webdriver` and `BrowserStack` and `SauceLabs`
-
+- `browserName` and `os` is original properties for Capium (Refer below table to specify)
+- Other properties is available as capabilities for `Webdriver` and `BrowserStack` and `SauceLabs`
 
 See more key of [os and browserName](https://github.com/igari/capium/tree/master#os-and-browser)
 

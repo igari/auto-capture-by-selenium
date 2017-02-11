@@ -1,6 +1,6 @@
-const capium = require('./../lib/capium.js');
+const Capium = require('./../lib/capium.js');
 
-capium({
+const capium = new Capium({
 	pages: [
 		"http://www.google.com",
 		"http://www.apple.com"
@@ -9,4 +9,7 @@ capium({
 		"browserName": "chrome"
 	}
 });
+
+capium.run();
+
 

@@ -1,5 +1,5 @@
 "use strict";
 
-const capium = require('../lib/init.js')
+const Capium = require('../lib/init.js')
 
-capium();
+Capium();

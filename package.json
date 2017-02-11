@@ -1,6 +1,6 @@
 {
   "name": "capium",
-  "version": "0.6.30",
+  "version": "0.6.31",
   "description": "A tool to get screenshots of web pages so easily and automatically. It works with Selenium3.0 for NodeJS and also be able to connect to BrowserStack and SauceLabs.",
   "main": "./lib/capium.js",
   "bin": "./bin/capium.js",
@@ -13,6 +13,7 @@
   "dependencies": {
     "argv": "^0.0.2",
     "browserstack-local": "^1.3.0",
+    "chalk": "^1.1.3",
     "colors": "^1.1.2",
     "del": "^2.2.1",
     "firefox-profile": "^0.4.8",
