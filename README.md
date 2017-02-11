@@ -24,9 +24,8 @@ If single, it does'nt need to specify as Array.
 
 index.js
 ```js
-const capium = require('capium');
-
-capium({
+const Capium = require('capium');
+const capium = new Capium({
   pages: [
     "https://www.google.com/",
     "https://www.mozilla.org/",
@@ -36,6 +35,7 @@ capium({
     {"browserName": "firefox"}
   ]
 });
+capium.run();
 ```
 
 just run the file as node
@@ -49,9 +49,8 @@ node index.js
 If you want to write `WebDriver Code`, make pages property value an object, and set `url` and `wd` key. 
 
 ```js
-const capium = require('capium');
-
-capium({
+const Capium = require('capium');
+const capium = new Capium({
   pages: [
     {
       url: "http://www.google.com/ncr",
@@ -80,6 +79,7 @@ capium({
     }
   ]
 });
+capium.run();
 ```
 
 More information about Remote Testing Services is...
