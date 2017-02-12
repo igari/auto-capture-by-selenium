@@ -18,8 +18,8 @@ npm i capium --save-dev
 brew install graphicsmagick
 ```
 
-## Basic Usage
-`pages and capabilities` are able to be specified multiply with Array.
+## Basic Usage (Only get screenshots)
+`pages and caps` are able to be specified multiply with Array.
 If single, it does'nt need to specify as Array.
 
 index.js
@@ -42,10 +42,11 @@ just run the file as node
 ```sh
 node index.js
 ```
+If finished the process, Then you can see screenshots(png) in the `${you project root}/output` directory.
 
-## Advanced Usage
+## Advanced Usage (With Webdriver Code)
 
-`Remote Testing` and `WebDriver Code` is also available.
+Not only getting screenshots, `WebDriver Code` is also available.
 If you want to write `WebDriver Code`, make pages property value an object, and set `url` and `wd` key. 
 
 ```js
@@ -65,56 +66,41 @@ const capium = new Capium({
     }
   ],
   caps: [
-    {
-      "browserName": "safari",
-      "os": "ios",
-      'browserstack.user': 'xxxxxxxxxxxxxx',//Add user for Browser Stack
-      'browserstack.key' : 'xxxxxxxxxxxxxx'//Add key for Browser Stack
-    },
-    {
-      "browserName": "safari",
-      "os": "ios",
-      'username': 'xxxxxxxxxxxxxx',//Add user for Sauce Labs
-      'accessKey' : 'xxxxxxxxxxxxxx'//Add key for Suace Labs
-    }
+    {"browserName": "chrome"},
+    {"browserName": "firefox"}
   ]
 });
 capium.run();
 ```
 
-More information about Remote Testing Services is...
+## Config
 
-- [Use BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
-- [Use SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
-
-
-## Setup
-
-### Pages Settings
+### `pages` => Pages Settings
 
 - `url` is target url to transition
 - `wd`(webdriver) is function to execute WebDriver API when page of `url` is loaded.
-- A parameter `driver` is `built browser instance`.
-- A parameter `webdriver` is `require('selenium-webdriver')`.
+- A parameter `driver` is `built browser instance` for API e.g. `driver.wait` and `driver.executeScript` etc.
+- A parameter `webdriver` is from `require('selenium-webdriver')` for API e.g. `webdriver.By` and `webdriver.until`.
 
-### Browsers Capabilities
+### `caps` => Browsers Capabilities
 
-- `browserName` and `os` is original properties for Capium (Refer below table to specify)
-- Other properties is available as capabilities for `Webdriver` and `BrowserStack` and `SauceLabs`
+- Available as same as native capability of Selenium Webdriver. ()See [native capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities))
+- `_browserName` and `_os` is special properties for shorthand to setup capabilities easily (See all of shorthands of capabilities >>> [_os and _browserName for shorthands of capabilities](https://github.com/igari/capium/tree/master#os-and-browser)))
+- Except for `_browserName` and `_os` are recognized as native properties.
 
-See more key of [os and browserName](https://github.com/igari/capium/tree/master#os-and-browser)
 
-See [all capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities)
-
-*Capabilities you specified takes precedence over below Default Capabilities*
-
-#### Default Capabilities in Capium
+#### Default Capabilities for Capium in case that you use shorthand
 - [Default Capabilities for Local](https://github.com/igari/capium/blob/master/scripts/caps-local.js)
 - [Default Capabilities for BrowserStack](https://github.com/igari/capium/blob/master/scripts/caps-browserstack.js)
 - [Default Capabilities for SauceLabs](https://github.com/igari/capium/blob/master/scripts/caps-saucelabs.js)
 
 
-#### `os` and `browserName`
+#### To Run on Remote Selenium
+- [Use BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
+- [Use SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
+
+
+#### `_os` and `_browserName`
 
 |              | chrome | firefox | safari | edge | ie11 |
 | ------------ | ------ | ------ | ------ | ------ | ------ |
@@ -125,17 +111,18 @@ See [all capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/
 | android_emulator | &check; |       |        |        |       |
 | ios_emulator | &check; |       | &check; |       |        |
 
-*1 Only supported in the case of Using BrowserStack
+*1 Only supported in the case of using BrowserStack
 
-### Destination Directory
+### Examples
+See more information about the config to run with each Browsers and OS.
 
-If you run it, Then you can see screenshots(png) in the `${you project root}/output` directory.
+- [Examples](https://github.com/igari/capium/tree/master/examples) for quick start.
 
 
 ## Some better API than native Webdriver API
 
-### `driver.executeScript and `driver.executeAsyncScript` are so complicated and unreadable
-because they are should to be passed as string.
+### `driver.executeScript` and `driver.executeAsyncScript` are too unreadable and too difficult to write
+because they are should to be passed as string like below.
 
 ```js
 const capium = new Capium({
@@ -150,9 +137,7 @@ const capium = new Capium({
 });
 ```
 
-#### Use `this.executeScript` and `this.executeAsyncScript`
-
-##### `this.executeScript`
+#### `this.executeScript`
 
 ```js
 const capium = new Capium({
@@ -160,20 +145,20 @@ const capium = new Capium({
     {
       url: "http://www.google.com/ncr",
       wd: function (driver, webdriver) {
-        this.executeScript(function() {
+        this.executeScript(function(arg1, arg2, arg3, arg4, arg5) {
           var allElements = document.querySelector("*");
           for(var i = 0, len = allElements.length; i < len; i++) {
             allElements[i].hidden = true;
           }
           return 'any value to want to pass';
-        });
+        }, 'arguments', 'are', 'available', 'at', 'here');
       }
     }
   ]
 });
 ```
 
-##### `this.executeAsyncScript`
+#### `this.executeAsyncScript`
 
 ```js
 const capium = new Capium({
@@ -193,14 +178,38 @@ const capium = new Capium({
 });
 ```
 
+#### Passing arguments
+
+Here is how to pass arguments from process of NodeJS into JavaScript in the Browser.
+
+```js
+const capium = new Capium({
+  pages: [
+    {
+      url: "http://www.google.com/ncr",
+      wd: function (driver, webdriver) {
+        this.executeScript(function(arg1, arg2, arg3, arg4, arg5) {
+          
+          console.log(arg1, arg2, arg3, arg4, arg5);//arguments are available at here
+          
+          return 'any value to want to pass';
+        }, 'arguments', 'are', 'available', 'at', 'here');
+      }
+    }
+  ]
+});
+```
+
+And also `executeAsyncScript` is same usage as above `executeScript`.
+
 ## Browser Supports
 
 |              | chrome | firefox | edge | ie11 | safari | iphone safari | android chrome |
 | ------------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| Mac (local)         | &check; |        |        |        | &check; |        |        |
+| Windows (local)     | &check; | &check; | &check; | &check; |        |        |        |
 | Browser Stack (remote)| &check; | &check;  | &check; | &check;| &check; | &check; | &check; |
 | Sauce Labs (remote)  | &check;| &check;| &check; | &check;| &check; | &triangle; | &triangle; |
-| Windows (local)     | &check; | &check; | &check; | &check; |        |        |        |
-| Mac (local)         | &check; |        |        |        | &check; |        |        |
 
 
 ## Range of Screenshot
@@ -220,6 +229,10 @@ git clone https://github.com/igari/capium.git
 ````
 
 ### Install Node Package Modules
+```sh
+yarn install
+````
+or
 ```sh
 npm i
 ````
@@ -263,34 +276,6 @@ module.exports = {
 ### If you use safari, turn on `Allow Remote Automation` before running.
 Safari > Develop > Allow Remote Automation.
 
-### Executing Webdriver API by page
-Edit Page Settings
-
-```js
-
-module.exports = {
-  pages: [
-    {
-      url: "https://www.google.com/",
-      
-      //Write here to execute webdriver api (Plain Webdriver Syntax)
-      wd: function (driver, webdriver) {
-        return driver
-          .wait(webdriver.until.elementLocated(webdriver.By.className("LaunchApp__closeIcon")), 10*1000, 'Could not found close button')
-          .then(function (element) {
-              return element.click();
-          });
-      }
-    }
-  ],
-  caps: [
-    {
-      "browserName": "chrome",
-    }
-  ]
-};
-```
-
 ### Specifying Basic Authentication Username and Password
 Include Username and Password into the URL.
 
@@ -302,8 +287,7 @@ module.exports = [
 ];
 ```
 
-#### Caution!!!
-Take care to be not published the secret information.
+!!!! Take care to not make published the secret information. !!!!
 
 ### Use BrowserStack for Remote Testing
 
@@ -321,7 +305,7 @@ module.exports = [
 
 See [all capabilities of BrowserStack](https://www.browserstack.com/automate/capabilities)
 
-#### Local tesing with BrowserStack (if you want to test on local server e.g. http://localhost)
+#### Local execution with BrowserStack (if you want to test on local server e.g. http://localhost)
 ```js
 module.exports = [
   {
@@ -333,7 +317,7 @@ module.exports = [
   }
 ];
 ```
-### Use SauceLabs for Remote Testing
+### Use SauceLabs for Remote execution
 
 Edit Capability to specify `username` and `accessKey`.
 
@@ -347,7 +331,7 @@ Edit Capability to specify `username` and `accessKey`.
 ```
 See [all capabilities of SauceLabs](https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options)
 
-#### Local testing with Sauce Connect of Sauce Labs (if you want to test on local server e.g. http://localhost)
+#### Local execution with Sauce Connect of Sauce Labs (if you want to test on local server e.g. http://localhost)
 
 Download & Use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy);
 
@@ -365,7 +349,7 @@ Download & Use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Con
 
 ##### Experimental Capability
 
-You are able to use  `Sauce Connect` when only `sauceConnect` parameter is added.
+You are able to use  `Sauce Connect` as just write only `"sauceConnect": true` parameter is added.
 
 ```json
 {
@@ -377,15 +361,19 @@ You are able to use  `Sauce Connect` when only `sauceConnect` parameter is added
 }
 ```
 
+## Testing
+
+```sh
+npm test
+```
 
 ## Dependencies
-
 - [Node.js](https://nodejs.org/) v6.4.0~
 - [JRE](https://java.com/ja/download/) 1.8~
 - [Graphics Magick](http://www.graphicsmagick.org)
 - [Selenium Standalone](https://www.npmjs.com/package/selenium-standalone)
 
-## Remote testing tools used by Capium.
+## Remote Selenium Services used by Capium.
 
 They are awesome cloud testing services using real browsers and devices.
 
@@ -418,9 +406,3 @@ They are awesome cloud testing services using real browsers and devices.
 ###### v0.7.1
 - Runnable on windows also correctly.
 - Detectable error more finely.
-
-## Testing
-
-```sh
-npm test
-```
