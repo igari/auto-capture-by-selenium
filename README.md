@@ -85,11 +85,12 @@ capium.run();
 ### `caps` => Browsers Capabilities
 
 - Available as same as native capability of Selenium Webdriver. (See [native capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities))
+
+#### Shorthand for Remote Browsers
 - `_browserName` and `_os` is special properties for shorthand to setup capabilities easily (See all of shorthands of capabilities >>> [_os and _browserName for shorthands of capabilities](https://github.com/igari/capium/tree/master#os-and-browser)))
 - Except for `_browserName` and `_os` are recognized as native properties.
 
 #### Default Capabilities for Capium in case that you use shorthand
-- [Default Capabilities for Local](https://github.com/igari/capium/blob/master/scripts/caps-local.js)
 - [Default Capabilities for BrowserStack](https://github.com/igari/capium/blob/master/scripts/caps-browserstack.js)
 - [Default Capabilities for SauceLabs](https://github.com/igari/capium/blob/master/scripts/caps-saucelabs.js)
 
@@ -97,7 +98,7 @@ capium.run();
 - [Use BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
 - [Use SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
 
-#### `_os` and `_browserName`
+#### `_os` and `_browserName` Shorthands for BrowserStack and SauceLabs
 |              | chrome | firefox | safari | edge | ie11 |
 | ------------ | ------ | ------ | ------ | ------ | ------ |
 | windows      | &check; | &check; |      | &check;| &check; |
@@ -217,51 +218,9 @@ And also `executeAsyncScript` is same usage as above `executeScript`.
 - &lowast;1. As native, above the fold but it's emulated with window scrolling.  
 - &lowast;2. In case of Safari10~ & Selenium3~. Otherwise Above the fold
 
-## Run as Standalone
+### Run as Standalone
 
-### Clone this repository
-```sh
-git clone https://github.com/igari/capium.git
-````
-
-### Install Node Package Modules
-```sh
-yarn install
-````
-or
-```sh
-npm i
-````
-
-### Try out (on your local environment)
-
-#### Execute Command
-
-```bash
-npm run ss
-```
-If you run above command, Firefox start and get screenshot of Google and Yahoo!
-
-
-#### Check `./output` directory
-Then you can see screenshots(png) of Google and Yahoo!
-
-### Setup
-
-Edit `./config.js`
-
-```js
-module.exports = {
-	pages: [
-		"https://www.google.com/",
-		"http://www.yahoo.com/"
-	],
-	caps: [
-		{ "browserName": "chrome" },
-		{ "browserName": "firefox" }
-	]
-};
-```
+See [a document](https://github.com/igari/capium/blob/master/README.md).
 
 ## TIPS
 

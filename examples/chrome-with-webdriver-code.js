@@ -10,7 +10,7 @@ const capium = new Capium({
 		}
 	},
 	caps: {
-		"_browserName": "chrome",
+		"browserName": "chrome",
 		"width": 1280
 	}
 });
