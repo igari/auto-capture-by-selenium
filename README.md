@@ -309,6 +309,21 @@ Download & Use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Con
 
 `-a` options is possible to be specified multiple time.
 
+##### Experimental Capability
+
+You are able to use  `Sauce Connect` when only `sauceConnect` parameter is added.
+
+```json
+{
+  "browserName": "chrome",
+  "os": "windows",
+  "username": "xxxxxxxxxxx",
+  "accessKey": "xxxxxxxxxxxxx",
+  "sauceConnect": true//Just add this!!
+}
+```
+
+
 ## Dependencies
 
 - [Node.js](https://nodejs.org/) v6.4.0~
