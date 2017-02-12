@@ -1,6 +1,6 @@
 # Capium
 
-A tool to get screenshots of web pages so easily and automatically. It works with Selenium3.0 for NodeJS and also be able to connect to BrowserStack and SauceLabs.
+A tool to get screenshots of web pages so easily and automatically works with Selenium3.0 for NodeJS and also be able to use BrowserStack and SauceLabs.
 
 ## Installation
 
@@ -275,7 +275,7 @@ module.exports = [
     "os": "windows",
     "browserstack.user": "xxxxxxxxxxx",
     "browserstack.key": "xxxxxxxxxxxxx",
-    "browserstack.key": true//Just add this!!
+    "browserstack.local": 'true'//Just add this!!
   }
 ];
 ```
@@ -294,22 +294,19 @@ Edit Capability to specify `username` and `accessKey`.
 See [all capabilities of SauceLabs](https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options)
 
 #### Local testing with Sauce Connect of Sauce Labs (if you want to test on local server e.g. http://localhost)
+
+Download & Use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy);
+
+##### Basic Usage
 ```bash
-./util/sc-4.3.6-osx/bin/sc-u ${username} -k ${accesskey}
+./sc-4.3.6-osx/bin/sc- u ${username} -k ${accesskey}
 ```
 
-#### Test page with Basic Authentication in URL
+##### In the case of Basic Authenticated URL:
 ```bash
-./util/sc-4.3.6-osx/bin/sc-u ${saucelabs_username} -k ${saucelabs_accesskey} -a ${host}:${port}:${basicauth_username}:${basicauth_password}
+./sc-4.3.6-osx/bin/sc -u ${saucelabs_username} -k ${saucelabs_accesskey} -a ${host}:${port}:${basicauth_username}:${basicauth_password}
 ```
 
-Then it doesn't need to include username and password for basic authentication into the URL.
-
-ex)
-```
-./util/sc-4.3.6-osx/bin/sc-u ${username} -k ${accesskey} -a example.com:80:hoge:fuga
-
-```
 `-a` options is possible to be specified multiple time.
 
 ## Dependencies
