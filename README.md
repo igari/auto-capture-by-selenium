@@ -47,7 +47,7 @@ If finished the process, Then you can see screenshots(png) in the `${you project
 ## Advanced Usage (With Webdriver Code)
 
 Not only getting screenshots, `WebDriver Code` is also available.
-If you want to write `WebDriver Code`, make pages property value an object, and set `url` and `wd` key. 
+To run `WebDriver Code` on the page, set `wd` property as function. 
 
 ```js
 const Capium = require('capium');
@@ -84,24 +84,20 @@ capium.run();
 
 ### `caps` => Browsers Capabilities
 
-- Available as same as native capability of Selenium Webdriver. ()See [native capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities))
+- Available as same as native capability of Selenium Webdriver. (See [native capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities))
 - `_browserName` and `_os` is special properties for shorthand to setup capabilities easily (See all of shorthands of capabilities >>> [_os and _browserName for shorthands of capabilities](https://github.com/igari/capium/tree/master#os-and-browser)))
 - Except for `_browserName` and `_os` are recognized as native properties.
-
 
 #### Default Capabilities for Capium in case that you use shorthand
 - [Default Capabilities for Local](https://github.com/igari/capium/blob/master/scripts/caps-local.js)
 - [Default Capabilities for BrowserStack](https://github.com/igari/capium/blob/master/scripts/caps-browserstack.js)
 - [Default Capabilities for SauceLabs](https://github.com/igari/capium/blob/master/scripts/caps-saucelabs.js)
 
-
 #### To Run on Remote Selenium
 - [Use BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
 - [Use SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
 
-
 #### `_os` and `_browserName`
-
 |              | chrome | firefox | safari | edge | ie11 |
 | ------------ | ------ | ------ | ------ | ------ | ------ |
 | windows      | &check; | &check; |      | &check;| &check; |
@@ -403,6 +399,13 @@ They are awesome cloud testing services using real browsers and devices.
 
 ## Roadmap
 
-###### v0.7.1
+###### v0.8.0
 - Runnable on windows also correctly.
 - Detectable error more finely.
+
+###### v0.9.0
+
+
+###### v1.0.0 (Maybe published at 04/2017)
+- Possible to run on Real Devices on BrowserStack
+
