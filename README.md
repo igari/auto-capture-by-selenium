@@ -87,6 +87,7 @@ More information about Remote Testing Services is...
 - [Use BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
 - [Use SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
 
+
 ## Setup
 
 ### Pages Settings
@@ -131,6 +132,67 @@ See [all capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/
 If you run it, Then you can see screenshots(png) in the `${you project root}/output` directory.
 
 
+## Some better API than native Webdriver API
+
+### `driver.executeScript and `driver.executeAsyncScript` are so complicated and unreadable
+because they are should to be passed as string.
+
+```js
+const capium = new Capium({
+  pages: [
+    {
+      url: "http://www.google.com/ncr",
+      wd: function (driver, webdriver) {
+        driver.executeScript('var allElements = document.querySelector("*"); for(var i = 0, len = allElements.length; i < len; i++) { allElements[i].hidden = true; } return "any value to want to pass";')
+      }
+    }
+  ]
+});
+```
+
+#### Use `this.executeScript` and `this.executeAsyncScript`
+
+##### `this.executeScript`
+
+```js
+const capium = new Capium({
+  pages: [
+    {
+      url: "http://www.google.com/ncr",
+      wd: function (driver, webdriver) {
+        this.executeScript(function() {
+          var allElements = document.querySelector("*");
+          for(var i = 0, len = allElements.length; i < len; i++) {
+            allElements[i].hidden = true;
+          }
+          return 'any value to want to pass';
+        });
+      }
+    }
+  ]
+});
+```
+
+##### `this.executeAsyncScript`
+
+```js
+const capium = new Capium({
+  pages: [
+    {
+      url: "http://www.google.com/ncr",
+      wd: function (driver, webdriver) {
+        this.executeAsyncScript(function() {
+          var callback = arguments[arguments.length = 1];
+          setTimeout(function() {
+            callback('any value to want to pass')
+          }, 10000);
+        });
+      }
+    }
+  ]
+});
+```
+
 ## Browser Supports
 
 |              | chrome | firefox | edge | ie11 | safari | iphone safari | android chrome |
@@ -145,10 +207,10 @@ If you run it, Then you can see screenshots(png) in the `${you project root}/out
 
 | chrome | firefox | edge | ie11 | safari | ios safari | android chrome |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| Above the Fold*2 | Full Page | Full Page | Full Page | Full Page*1  | Above the Fold*2 | Above the Fold*2 |
+| Full Page &lowast;1 | Full Page &lowast;1 | Full Page | Full Page &lowast;1 | Full Page &lowast;2  | Full Page &lowast;1 | Above the Fold |
 
-*1) In case of Safari10~ & Selenium3~. Otherwise Above the fold
-
+- &lowast;1. As native, above the fold but it's emulated with window scrolling.  
+- &lowast;2. In case of Safari10~ & Selenium3~. Otherwise Above the fold
 
 ## Run as Standalone
 
@@ -182,20 +244,12 @@ Edit `./config.js`
 ```js
 module.exports = {
 	pages: [
-		{
-			url: "https://www.google.co.jp/"
-		},
-		{
-			url: "http://www.yahoo.co.jp/"
-		}
+		"https://www.google.com/",
+		"http://www.yahoo.com/"
 	],
 	caps: [
-		{
-			"browserName": "chrome",
-		},
-		{
-			"browserName": "firefox",
-		}
+		{ "browserName": "chrome" },
+		{ "browserName": "firefox" }
 	]
 };
 ```
@@ -217,7 +271,7 @@ Edit Page Settings
 module.exports = {
   pages: [
     {
-      url: "https://www.google.co.jp/",
+      url: "https://www.google.com/",
       
       //Write here to execute webdriver api (Plain Webdriver Syntax)
       wd: function (driver, webdriver) {
@@ -340,28 +394,33 @@ They are awesome cloud testing services using real browsers and devices.
 <a href="https://saucelabs.com/"><img src="https://saucelabs.com/content/images/logo@2x.png" width="350" style="vertical-align: middle;"></a><br>
 
 
-## Roadmap
+## Changed log
 
-###### current features
-- Possible to get screenshot of web pages if you write only config, it's all fine basically. it can be started sooooo easily as just Selenium.
-- Writable additional selenium code when the config is added `wd` property as function
+###### v0.6.0
+- Possible to get screenshot of web pages as just write only a little config.
+- Not only screenshot, and also you can start to Selenium so easily as just write as just install this module.
+- Writable selenium code as just write `wd` property as function by page.
 - By default, chrome and firefox and safari is runnable as it is. their drivers will be installed automatically.(safari10's driver is already installed natively.)
 - Support for full screenshot except for android.
-- SauceLabs can be used with easy config.
-- BrowserStack can be used with easy config.
+- SauceLabs and BrowserStack can be used with easy config.
 - Local testing is also available with above remote testing services(e.g. localhost site.)
+- Writable more flexible config. 
 
 ###### v0.7.0
-- Writable more flexible config. 
-- Detectable error more finely.
-- Possible to get full screenshot even if the page is implemented lazyload.
+- Set color console message
+- Possible to get full screenshot even if the page has contents loaded when scrolled.
+- Possible to use BrowserStackLocal as just set `browserstack.local: 'true'`
+- Add mocha as test framework.
+- Runnable `npm test` to test this app.
+
+## Roadmap
 
 ###### v0.7.1
-- Writable ful native capability also.
-- Runnable `npm test` to test this app.
 - Runnable on windows also correctly.
+- Detectable error more finely.
 
-###### v0.7.2
-- Set color console message
-- Add mocha as test framework.
+## Testing
 
+```sh
+npm test
+```

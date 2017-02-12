@@ -10,4 +10,4 @@ const capium = new Capium({
 	}
 });
 
-capium.run();
+module.exports = capium.run();
