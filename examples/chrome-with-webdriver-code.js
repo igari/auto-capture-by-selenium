@@ -6,7 +6,7 @@ const capium = new Capium({
 		wd: function (driver, webdriver) {
 			driver.findElement(webdriver.By.name('q')).sendKeys('webdriver');
 			driver.findElement(webdriver.By.name('btnG')).click();
-			driver.wait(webdriver.until.titleIs('webdriver - Google Search'), 1000);
+			driver.wait(webdriver.until.titleIs('webdriver - Google Search'), 5000);
 		}
 	},
 	caps: {

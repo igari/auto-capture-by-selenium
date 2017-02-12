@@ -19,6 +19,7 @@ brew install graphicsmagick
 ```
 
 ## Basic Usage (Only get screenshots)
+
 `pages and caps` are able to be specified multiply with Array.
 If single, it does'nt need to specify as Array.
 
@@ -317,25 +318,15 @@ You are able to use  `Sauce Connect` as just write only `"sauceConnect": true` p
 ```
 
 ## Testing
+If you don't have mocha 
+```sh 
+yarn global add mocha
+npm i mochawesome -g
+```
 
 ```sh
 npm test
 ```
-
-## Dependencies
-- [Node.js](https://nodejs.org/) v6.4.0~
-- [JRE](https://java.com/ja/download/) 1.8~
-- [Graphics Magick](http://www.graphicsmagick.org)
-- [Selenium Standalone](https://www.npmjs.com/package/selenium-standalone)
-
-## Remote Selenium Services used by Capium.
-
-They are awesome cloud testing services using real browsers and devices.
-
-<a href="https://www.browserstack.com/"><img src="https://style-validator.io/img/browserstack-logo.svg" width="350" style="vertical-align: middle;"></a><br>
-<br>
-<a href="https://saucelabs.com/"><img src="https://saucelabs.com/content/images/logo@2x.png" width="350" style="vertical-align: middle;"></a><br>
-
 
 ## Changed log
 
@@ -354,17 +345,36 @@ They are awesome cloud testing services using real browsers and devices.
 - Possible to get full screenshot even if the page has contents loaded when scrolled.
 - Possible to use BrowserStackLocal as just set `browserstack.local: 'true'`
 - Add mocha as test framework.
-- Runnable `npm test` to test this app.
+- Possible to test with command `npm test`.
+- Possible to install from `yarn`.
 
 ## Roadmap
 
 ###### v0.8.0
-- Runnable on windows also correctly.
+- Runnable on windows OS also correctly.
 - Detectable error more finely.
 
 ###### v0.9.0
+- Add options 
 
-
-###### v1.0.0 (Maybe published at 04/2017)
+###### v1.0.0
 - Possible to run on Real Devices on BrowserStack
 
+###### v1.1.0 
+- Connect local appium server
+
+
+
+## Dependencies
+- [Node.js](https://nodejs.org/) v6.4.0~
+- [JRE](https://java.com/ja/download/) 1.8~
+- [Graphics Magick](http://www.graphicsmagick.org)
+- [Selenium Standalone](https://www.npmjs.com/package/selenium-standalone)
+
+## Remote Selenium Services used by Capium.
+
+They are awesome cloud testing services using real browsers and devices.
+
+<a href="https://www.browserstack.com/"><img src="https://style-validator.io/img/browserstack-logo.svg" width="350" style="vertical-align: middle;"></a><br>
+<br>
+<a href="https://saucelabs.com/"><img src="https://saucelabs.com/content/images/logo@2x.png" width="350" style="vertical-align: middle;"></a><br>
