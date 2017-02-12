@@ -6,7 +6,7 @@ const capium = new Capium({
 		"http://www.apple.com"
 	],
 	caps: {
-		"browserName": "internet explorer"
+		"_browserName": "internet explorer"
 	}
 });
 

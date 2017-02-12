@@ -6,8 +6,8 @@ const capium = new Capium({
 		"http://www.apple.com"
 	],
 	caps: {
-		"browserName": "safari",
-		"os": "ios",
+		"_browserName": "safari",
+		"_os": "ios",
 		"username": "!!!!!!!FIXME!!!!!!!!!",
 		"accessKey": "!!!!!!!FIXME!!!!!!!!!"
 	}

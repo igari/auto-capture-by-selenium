@@ -6,8 +6,8 @@ capium({
 		"http://www.apple.com"
 	],
 	caps: {
-		"browserName": "chrome",
-		"os": "android",
+		"_browserName": "chrome",
+		"_os": "android",
 		"browserstack.user": "!!!!!!!FIXME!!!!!!!!!",
 		"browserstack.key": "!!!!!!!FIXME!!!!!!!!!",
 		// "browserstack.local": true
