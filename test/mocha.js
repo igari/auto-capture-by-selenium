@@ -1,6 +1,7 @@
 var Mocha = require('mocha'),
 	fs = require('fs'),
-	path = require('path');
+	path = require('path'),
+	open = require('open');
 
 // Instantiate a Mocha instance.
 var mocha = new Mocha({
@@ -23,9 +24,7 @@ fs.readdirSync(testDir).filter(function(file){
 // Run the tests.
 mocha.run(function(failures){
 	process.on('exit', function () {
+		open(path.join(process.cwd(), './mochawesome-reports/mochawesome.html'));
 		process.exit(failures);  // exit with non-zero status if there were failures
 	});
 })
-.then(function (data) {
-	console.log(data);
-});

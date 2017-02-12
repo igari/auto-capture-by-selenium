@@ -28,8 +28,8 @@ index.js
 const Capium = require('capium');
 const capium = new Capium({
   pages: [
-    "https://www.google.com/",
-    "https://www.mozilla.org/",
+    "http://localhost/login.html",
+    "http://localhost/register.html",
   ],
   caps: [
     {"browserName": "chrome"},
@@ -85,37 +85,73 @@ capium.run();
 
 ### `caps` => Browsers Capabilities
 
+- Native `browserName` could be specified as chrome/firefox/safari/MicrosoftEdge/internet explorer
 - Available as same as native capability of Selenium Webdriver. (See [native capabilities of WebDriver](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities))
 
-#### Shorthand for Remote Browsers
-- `_browserName` and `_os` is special properties for shorthand to setup capabilities easily (See all of shorthands of capabilities >>> [_os and _browserName for shorthands of capabilities](https://github.com/igari/capium/tree/master#os-and-browser)))
-- Except for `_browserName` and `_os` are recognized as native properties.
+### To run on Remote Selenium(with BrowserStack and SauceLabs)
 
-#### Default Capabilities for Capium in case that you use shorthand
-- [Default Capabilities for BrowserStack](https://github.com/igari/capium/blob/master/scripts/caps-browserstack.js)
-- [Default Capabilities for SauceLabs](https://github.com/igari/capium/blob/master/scripts/caps-saucelabs.js)
+#### Set account information
+- [Account capabilities of BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
+- [Account capabilities of SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
 
-#### To Run on Remote Selenium
-- [Use BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
-- [Use SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
+#### Set device information 
 
-#### `_os` and `_browserName` Shorthands for BrowserStack and SauceLabs
-|              | chrome | firefox | safari | edge | ie11 |
-| ------------ | ------ | ------ | ------ | ------ | ------ |
-| windows      | &check; | &check; |      | &check;| &check; |
-| mac          | &check; | &check; | &check; |      |       |
-| android*1      | &check; |       |        |        |       |
-| ios*1          | &check; |       | &check; |       |        |
-| android_emulator | &check; |       |        |        |       |
-| ios_emulator | &check; |       | &check; |       |        |
+**To specify easily, use `Capability Generator` published by BrowserStack and SauceLabs.**
 
-*1 Only supported in the case of using BrowserStack
+- [BrowserStack's Generator](https://www.browserstack.com/automate/node#setting-os-and-browser)
+- [SauceLabs's Generator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)
 
-### Examples
-See more information about the config to run with each Browsers and OS.
+**To see all of capability, go to service site.**
+- [BrowserStack's Capabilities](https://www.browserstack.com/automate/capabilities)
+- [SauceLabs's Capabilities](https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options)
 
-- [Examples](https://github.com/igari/capium/tree/master/examples) for quick start.
+#### Examples (safari on iOS on iPhone6)
 
+##### BrowserStack Capabilities
+
+```js
+const Capium = require('capium');
+const capium = new Capium({
+	pages: [
+    "http://localhost/login.html",
+    "http://localhost/register.html",
+  ],
+  caps: [
+    {
+      "browserName": "iPhone",
+      "platform": "MAC",
+      "device": "iPhone 6",
+      "browserstack.user": "****************",
+      "browserstack.key": "********************"
+    }
+  ]
+});
+capium.run();
+```
+
+##### SauceLabs Capabilities
+```js
+const Capium = require('capium');
+const capium = new Capium({
+	pages: [
+    "http://localhost/login.html",
+    "http://localhost/register.html",
+  ],
+  caps: [
+    {
+      "browserName": "Safari",
+      "appiumVersion": "1.5.3",
+      "deviceName": "iPhone 6s Device",
+      "deviceOrientation": "portrait",
+      "platformVersion": "9.3",
+      "platformName": "iOS",
+      "username": "***********",
+      "accessKey": "********************************"
+    }
+  ]
+});
+capium.run();
+```
 
 ## Some better API than native Webdriver API
 
@@ -149,7 +185,7 @@ const capium = new Capium({
             allElements[i].hidden = true;
           }
           return 'any value to want to pass';
-        }, 'arguments', 'are', 'available', 'at', 'here');
+        });
       }
     }
   ]
@@ -186,9 +222,10 @@ const capium = new Capium({
     {
       url: "http://www.google.com/ncr",
       wd: function (driver, webdriver) {
-        this.executeScript(function(arg1, arg2, arg3, arg4, arg5) {
+        this.executeScript(function(arguments, are, available, at, here) {
           
-          console.log(arg1, arg2, arg3, arg4, arg5);//arguments are available at here
+          var msg = [arguments, are, available, at, here].join(' ');
+          console.log(msg);//arguments are available at here
           
           return 'any value to want to pass';
         }, 'arguments', 'are', 'available', 'at', 'here');
@@ -245,51 +282,26 @@ module.exports = [
 
 !!!! Take care to not make published the secret information. !!!!
 
-### Use BrowserStack for Remote Testing
+### Run on local server(e.g. http://localhost)
 
-Edit Capability to specify `browserstack.user` and `browserstack.key`.
-```js
-module.exports = [
-  {
-    "browserName": "chrome",
-    "os": "windows",
-    "browserstack.user": "xxxxxxxxxxx",
-    "browserstack.key": "xxxxxxxxxxxxx"
-  }
-];
-```
+#### BrowserStack
 
-See [all capabilities of BrowserStack](https://www.browserstack.com/automate/capabilities)
-
-#### Local execution with BrowserStack (if you want to test on local server e.g. http://localhost)
-```js
-module.exports = [
-  {
-    "browserName": "chrome",
-    "os": "windows",
-    "browserstack.user": "xxxxxxxxxxx",
-    "browserstack.key": "xxxxxxxxxxxxx",
-    "browserstack.local": 'true'//Just add this!!
-  }
-];
-```
-### Use SauceLabs for Remote execution
-
-Edit Capability to specify `username` and `accessKey`.
+Just add `"browserstack.local": "true"`
 
 ```json
 {
-  "browserName": "chrome",
-  "os": "windows",
-  "username": "xxxxxxxxxxx",
-  "accessKey": "xxxxxxxxxxxxx"
+  "browserName": "iPhone",
+  "platform": "MAC",
+  "device": "iPhone 6",
+  "browserstack.user": "****************",
+  "browserstack.key": "********************",
+  "browserstack.local": "true"
 }
 ```
-See [all capabilities of SauceLabs](https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options)
 
-#### Local execution with Sauce Connect of Sauce Labs (if you want to test on local server e.g. http://localhost)
+#### SauceLabs
 
-Download & Use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy);
+Download & use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) from Sauce Labs.
 
 ##### Basic Usage
 ```bash
@@ -303,9 +315,9 @@ Download & Use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Con
 
 `-a` options is possible to be specified multiple time.
 
-##### Experimental Capability
+##### Experimental Capability to run more easier
 
-You are able to use  `Sauce Connect` as just write only `"sauceConnect": true` parameter is added.
+Otherwise, you are able to use  `Sauce Connect` as just add only `"sauceConnect": true` parameter.
 
 ```json
 {
@@ -313,7 +325,7 @@ You are able to use  `Sauce Connect` as just write only `"sauceConnect": true` p
   "os": "windows",
   "username": "xxxxxxxxxxx",
   "accessKey": "xxxxxxxxxxxxx",
-  "sauceConnect": true//Just add this!!
+  "sauceConnect": true
 }
 ```
 
@@ -355,15 +367,14 @@ npm test
 - Detectable error more finely.
 
 ###### v0.9.0
-- Add options 
+- Save screenshot by version or revision number
 
 ###### v1.0.0
-- Possible to run on Real Devices on BrowserStack
+- Generate screenshot's diff image between a version and a version
 
 ###### v1.1.0 
-- Connect local appium server
-
-
+- Connect to local Appium server
+- Run on Real Devices on BrowserStack
 
 ## Dependencies
 - [Node.js](https://nodejs.org/) v6.4.0~
