@@ -14,9 +14,12 @@ npm i capium --save-dev
 ```
 
 ### Install `graphic magick` (if you don't have)
+#### Mac OS X with [Homebrew](http://mxcl.github.io/homebrew/)
 ```bash
 brew install graphicsmagick
 ```
+#### Windows
+Download and Install from [http://www.graphicsmagick.org/download.html](http://www.graphicsmagick.org/download.html)
 
 ## Basic Usage (Only get screenshots)
 
@@ -90,18 +93,18 @@ capium.run();
 
 ### To run on Remote Selenium(with BrowserStack and SauceLabs)
 
-#### Set account information
+#### Set account capabilities
 - [Account capabilities of BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
 - [Account capabilities of SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
 
-#### Set device information 
+#### Set browser capabilities
 
 **To specify easily, use `Capability Generator` published by BrowserStack and SauceLabs.**
 
 - [BrowserStack's Generator](https://www.browserstack.com/automate/node#setting-os-and-browser)
 - [SauceLabs's Generator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)
 
-**To see all of capability, go to service site.**
+**To see all of capability, go to the each service site.**
 - [BrowserStack's Capabilities](https://www.browserstack.com/automate/capabilities)
 - [SauceLabs's Capabilities](https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options)
 
@@ -222,13 +225,13 @@ const capium = new Capium({
     {
       url: "http://www.google.com/ncr",
       wd: function (driver, webdriver) {
-        this.executeScript(function(arguments, are, available, at, here) {
+        this.executeScript(function(Arguments, are, available, at, here) {
           
-          var msg = [arguments, are, available, at, here].join(' ');
-          console.log(msg);//arguments are available at here
+          var msg = [Arguments, are, available, at, here].join(' ');
+          console.log(msg);//Arguments are available at here
           
           return 'any value to want to pass';
-        }, 'arguments', 'are', 'available', 'at', 'here');
+        }, 'Arguments', 'are', 'available', 'at', 'here');
       }
     }
   ]
@@ -258,7 +261,7 @@ And also `executeAsyncScript` is same usage as above `executeScript`.
 
 ### Run as Standalone
 
-See [a document](https://github.com/igari/capium/blob/master/README.md).
+See [a document](https://github.com/igari/capium/blob/master/RUN_AS_STANDALONE.md).
 
 ## TIPS
 
@@ -282,7 +285,7 @@ module.exports = [
 
 !!!! Take care to not make published the secret information. !!!!
 
-### Run on local server(e.g. http://localhost)
+### Local site with Remote Selenium Services (e.g. http://localhost)
 
 #### BrowserStack
 
@@ -299,11 +302,14 @@ Just add `"browserstack.local": "true"`
 }
 ```
 
+More information is [here](https://www.browserstack.com/local-testing)
+
 #### SauceLabs
 
 Download & use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) from Sauce Labs.
 
 ##### Basic Usage
+It works after launching `SauceConnect` server.
 ```bash
 ./sc-4.3.6-osx/bin/sc- u ${username} -k ${accesskey}
 ```
@@ -315,7 +321,10 @@ Download & use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Con
 
 `-a` options is possible to be specified multiple time.
 
-##### Experimental Capability to run more easier
+More information is [here](https://wiki.saucelabs.com/pages/viewpage.action?pageId=48365781)
+
+
+##### Experimental capability to run without running above command
 
 Otherwise, you are able to use  `Sauce Connect` as just add only `"sauceConnect": true` parameter.
 
@@ -330,12 +339,6 @@ Otherwise, you are able to use  `Sauce Connect` as just add only `"sauceConnect"
 ```
 
 ## Testing
-If you don't have mocha 
-```sh 
-yarn global add mocha
-npm i mochawesome -g
-```
-
 ```sh
 npm test
 ```
@@ -379,8 +382,10 @@ npm test
 ## Dependencies
 - [Node.js](https://nodejs.org/) v6.4.0~
 - [JRE](https://java.com/ja/download/) 1.8~
-- [Graphics Magick](http://www.graphicsmagick.org)
+- [Selenium Webdriver for NodeJS](https://www.npmjs.com/package/selenium-webdriver)
 - [Selenium Standalone](https://www.npmjs.com/package/selenium-standalone)
+- [Graphics Magick](http://www.graphicsmagick.org)
+
 
 ## Remote Selenium Services used by Capium.
 
