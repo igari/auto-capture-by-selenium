@@ -11,10 +11,10 @@ module.exports = {
 	],
 	caps: [
 		{
-			"browserName": "chrome",
+			"browserName": "chrome"
 		},
 		{
-			"browserName": "firefox",
+			"browserName": "firefox"
 		}
 	]
 };

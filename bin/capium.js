@@ -1,5 +1,5 @@
 "use strict";
 
 const Capium = require('../lib/init.js')
-
-Capium();
+const capium = new Capium();
+module.exports = capium.run();
