@@ -12,3 +12,4 @@ launch-sc-proxy.sh
 samples/
 browserStackLocal.txt
 mochawesome-reports/
+task.txt

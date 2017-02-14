@@ -110,8 +110,8 @@ capium.run();
 ### To run on Remote Selenium(with BrowserStack and SauceLabs)
 
 #### Set account capabilities
-- [Account capabilities of BrowserStack for Remote Testing](https://github.com/igari/capium#use-browserstack-for-remote-testing).
-- [Account capabilities of SauceLabs for Remote Testing](https://github.com/igari/capium#use-saucelabs-for-remote-testinghttps://github.com/igari/capium#use-browserstack-for-remote-testing).
+- [Account capabilities for BrowserStack](https://github.com/igari/capium#browserstack).
+- [Account capabilities for SauceLabs](https://github.com/igari/capium#saucelabs).
 
 #### Set browser capabilities
 
