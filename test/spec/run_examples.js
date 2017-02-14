@@ -1,7 +1,8 @@
 const os = /^win/.test(process.platform) ? 'windows' : 'mac';
 const path = require('path');
+const assert = require('assert');
 
-describe(`test on ${os}`, function () {
+describe(`test on ${os} from require`, function () {
 	this.timeout(60*60*1000);
 	let testFiles = [];
 	switch(os) {
@@ -26,6 +27,9 @@ describe(`test on ${os}`, function () {
 	testFiles.forEach(function (exampleFileName) {
 		it(exampleFileName, function () {
 			return require(path.join(process.cwd(), './examples/', exampleFileName))
+				.catch(function (error) {
+					assert(false, typeof error === 'string' ? error : error.message);
+				})
 		})
 	});
 })

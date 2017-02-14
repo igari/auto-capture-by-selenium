@@ -7,6 +7,9 @@ const capium = new Capium({
 	],
 	caps: {
 		"browserName": "chrome"
+	},
+	options: {
+		timestamp: true
 	}
 });
 

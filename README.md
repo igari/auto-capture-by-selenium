@@ -46,7 +46,23 @@ just run the file as node
 ```sh
 node index.js
 ```
-If finished the process, Then you can see screenshots(png) in the `${you project root}/output` directory.
+
+### Destination Directory
+If finished the process, Then you can see screenshots(png) in the `${you project root}/capium_output` directory.
+
+#### if git project
+./capium_output/${git revision}/${url replaced `/` to `_`}
+
+#### if timestamp option is true
+./capium_output/${timestamp}/${url replaced `/` to `_`}
+
+#### if git project and timestamp option is true
+./capium_output/${git revision}/${timestamp}/${url replaced `/` to `_`}
+
+ex)
+```sh
+./capium_output/562184b/1487045916823/www_google_com.png
+```
 
 ## Advanced Usage (With Webdriver Code)
 
@@ -366,16 +382,17 @@ npm test
 ## Roadmap
 
 ###### v0.8.0
-- Runnable on windows OS also correctly.
-- Detectable error more finely.
+- Save screenshot by version or revision number
 
 ###### v0.9.0
-- Save screenshot by version or revision number
+- Runnable on windows OS also correctly.
+- Catching JavaScript error. 
+- Detection error more finely.
 
 ###### v1.0.0
 - Generate screenshot's diff image between a version and a version
 
-###### v1.1.0 
+###### v1.1.0
 - Connect to local Appium server
 - Run on Real Devices on BrowserStack
 

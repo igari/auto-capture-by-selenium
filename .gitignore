@@ -1,5 +1,6 @@
 node_modules/
 output/
+capium_output/
 .temp/
 !.gitkeep
 .DS_Store
