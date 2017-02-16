@@ -32,4 +32,4 @@ describe(`test on ${os} from require`, function () {
 				})
 		})
 	});
-})
+});

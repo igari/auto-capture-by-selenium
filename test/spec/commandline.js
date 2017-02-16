@@ -13,7 +13,11 @@ describe(`test on ${os} from commandline`, function () {
 		child.on('error', function(data) {
 			assert(false, data.toString());
 		});
+		child.on('exit', function(code) {
+			assert(code === 0, `exited with code: ${code}`);
+		});
 		child.on('close', function(code) {
+			console.log('close!!!')
 			assert(code === 0, `closed with code: ${code}`);
 			return done();
 		});

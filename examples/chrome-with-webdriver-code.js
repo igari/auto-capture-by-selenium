@@ -11,7 +11,19 @@ const capium = new Capium({
 	},
 	caps: {
 		"browserName": "chrome",
-		"width": 1280
+		"width": 1280,
+		loggingPrefs: {
+			'browser':		'ALL',
+			'driver':		'ALL',
+			'server':		'ALL',
+			'performance':	'ALL',
+			'client':		'ALL'
+		},
+		chromeOptions: {
+			perfLoggingPrefs: {
+				traceCategories: 'v8,blink.console,disabled-by-default-devtools.timeline'
+			},
+		}
 	}
 });
 

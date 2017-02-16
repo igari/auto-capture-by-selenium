@@ -1,6 +1,6 @@
 # Capium
 
-A tool to get screenshots of web pages so easily and automatically works with Selenium3.0 for NodeJS and also be able to use BrowserStack and SauceLabs.
+A tool to get screenshots of web pages so easily and automatically works with Selenium3.0 for NodeJS and easy to use BrowserStack and SauceLabs.
 
 ## Installation
 
@@ -67,7 +67,8 @@ ex)
 ## Advanced Usage (With Webdriver Code)
 
 Not only getting screenshots, `WebDriver Code` is also available.
-To run `WebDriver Code` on the page, set `wd` property as function. 
+To run `WebDriver Code` on the page, set `wd` property as function.
+Basically the screenshots will be gotten after running `WebDriver Code`.
 
 ```js
 const Capium = require('capium');
@@ -260,7 +261,7 @@ And also `executeAsyncScript` is same usage as above `executeScript`.
 
 |              | chrome | firefox | edge | ie11 | safari | iphone safari | android chrome |
 | ------------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| Mac (local)         | &check; |        |        |        | &check; |        |        |
+| Mac (local)         | &check; | &check; |        |        | &check; |        |        |
 | Windows (local)     | &check; | &check; | &check; | &check; |        |        |        |
 | Browser Stack (remote)| &check; | &check;  | &check; | &check;| &check; | &check; | &check; |
 | Sauce Labs (remote)  | &check;| &check;| &check; | &check;| &check; | &triangle; | &triangle; |
